@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Nexus Shop | Catálogo y Pedidos</title>
+  <title>Nexus Shop | Catálogo y Pedidos con GPS</title>
   
   <!-- OpenGraph / Redes Sociales (Instagram, WhatsApp, TikTok, Facebook) -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Nexus Shop | Catálogo de Productos y Pedidos Online">
-  <meta property="og:description" content="Descubrí nuestras novedades, elegí tus favoritos y hacé tu pedido en 1 minuto con entrega a domicilio o retiro.">
+  <meta property="og:title" content="Nexus Shop | Catálogo de Productos y Pedidos con GPS en Vivo">
+  <meta property="og:description" content="Descubrí nuestras novedades, activá tu GPS en el mapa y hacé tu pedido en 1 minuto por WhatsApp.">
   <meta property="og:image" content="https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=1200&q=80">
   <meta property="og:url" content="https://mitienda.vercel.app">
   <meta name="twitter:card" content="summary_large_image">
@@ -22,7 +22,7 @@
   <!-- Leaflet CSS para Mapa Interactivo GPS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 
@@ -70,19 +70,81 @@
     </div>
   </header>
 
+  <!-- BARRA DE UBICACIÓN RÁPIDA (Debajo del Navbar) -->
+  <div class="location-topbar">
+    <div class="location-topbar-inner">
+      <div class="location-topbar-left">
+        <span class="pin-pulse-icon">📍</span>
+        <div class="location-text-wrap">
+          <span class="location-label">Lugar de entrega:</span>
+          <span id="topbar-address-text" class="location-active-address">Fijá tu ubicación con GPS satelital</span>
+        </div>
+      </div>
+      <button type="button" id="topbar-gps-btn" class="topbar-gps-btn" onclick="scrollToMapAndActivateGps()">
+        <span class="gps-pulse-dot"></span>
+        <span>🎯 Activar mi GPS</span>
+      </button>
+    </div>
+  </div>
+
   <!-- Contenedor Principal -->
   <main class="main-content">
     
     <!-- Hero / Bienvenida -->
     <section class="hero-section">
       <div class="hero-card">
-        <h2 id="store-tagline" class="hero-title">Tecnología, accesorios y tendencias a tu alcance ⚡</h2>
-        <p class="hero-subtitle">Elegí tus productos, fijá tu punto de entrega en el mapa con GPS y confirmá tu pedido en segundos por WhatsApp.</p>
+        <h2 id="store-tagline" class="hero-title">Tecnología, accesorios y tendencias con entrega por GPS ⚡</h2>
+        <p class="hero-subtitle">Elegí tus productos, fijá tu punto de entrega en el mapa con GPS en vivo y confirmá tu pedido en segundos por WhatsApp.</p>
         
         <div class="hero-features">
           <div class="feature-tag">🗺️ <b>Mapa GPS en tiempo real</b></div>
           <div class="feature-tag">💵 <b>Pago al recibir o Alias</b></div>
           <div class="feature-tag">🚀 <b>Envíos express</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN PRINCIPAL VISIBLE DEL MAPA GPS INTERACTIVO -->
+    <section id="main-map-section" class="main-map-section">
+      <div class="homepage-map-card">
+        <div class="homepage-map-header">
+          <div>
+            <div class="map-badge-live">
+              <span class="gps-pulse-dot"></span> GPS SATELITAL EN VIVO
+            </div>
+            <h3 class="homepage-map-title">📍 Ubicación de Entrega en el Mapa</h3>
+            <p class="homepage-map-sub">Presioná el botón para que el mapa vuele automáticamente a tu casa con el GPS.</p>
+          </div>
+          <button type="button" id="homepage-activate-gps-btn" class="activate-gps-btn-large" onclick="requestGpsLocation()">
+            <span class="gps-pulse-dot"></span>
+            <span id="homepage-gps-label">🎯 Activar mi GPS ahora</span>
+          </button>
+        </div>
+
+        <!-- Contenedor del Mapa Leaflet Interactivo -->
+        <div class="homepage-map-wrapper">
+          <div id="homepage-map" class="homepage-map-canvas"></div>
+          
+          <!-- Overlay de ayuda antes de activar -->
+          <div id="homepage-map-overlay" class="homepage-map-overlay">
+            <div class="map-overlay-content" onclick="requestGpsLocation()">
+              <span class="overlay-icon">🎯</span>
+              <strong>Tocar acá para activar tu GPS</strong>
+              <small>Fijará tu casa en el mapa para el repartidor</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barra de Estado de la Ubicación Detectada -->
+        <div id="homepage-gps-status" class="homepage-gps-status" style="display: none;"></div>
+
+        <!-- Casillero de Dirección -->
+        <div class="homepage-address-row">
+          <label for="homepage-address-input">Dirección confirmada:</label>
+          <div class="address-input-with-icon">
+            <span class="address-icon">🏠</span>
+            <input type="text" id="homepage-address-input" placeholder="Dirección autocompletada por GPS (o escribí calle y altura)" class="form-control">
+          </div>
         </div>
       </div>
     </section>
@@ -94,7 +156,7 @@
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <input type="text" id="search-input" placeholder="Buscar producto, auricular, smartwatch, cargador..." autocomplete="off">
+        <input type="text" id="search-input" placeholder="Buscar producto, auricular, smartwatch, cargador, mochila..." autocomplete="off">
         <button id="clear-search-btn" class="clear-search-btn" style="display: none;">✕</button>
       </div>
     </section>
@@ -217,51 +279,21 @@
         </div>
       </div>
 
-      <!-- Paso 2: Datos del Cliente y Mapa GPS -->
+      <!-- Paso 2: Datos del Cliente y Ubicación -->
       <div class="checkout-block">
         <label class="block-label">Tus Datos para el Pedido:</label>
         <div class="form-inputs">
           <input type="text" id="customer-name" placeholder="Tu Nombre y Apellido *" class="form-control" required>
           <input type="tel" id="customer-phone" placeholder="Tu Teléfono / WhatsApp *" class="form-control" required>
           
-          <!-- SECCIÓN DE UBICACIÓN Y MAPA INTERACTIVO CON GPS -->
+          <!-- SECCIÓN DE DIRECCIÓN SINCRONIZADA CON EL GPS -->
           <div id="shipping-address-group" class="shipping-address-group">
-            
-            <div class="map-gps-card">
-              <div class="map-gps-header">
-                <div>
-                  <strong class="map-header-title">📍 Ubicación de Entrega en el Mapa</strong>
-                  <span class="map-header-sub">Tocá el botón para activar tu GPS satelital</span>
-                </div>
-                <button type="button" id="activate-gps-btn" class="activate-gps-btn" title="Activar mi GPS satelital en el mapa">
-                  <span class="gps-pulse-dot"></span>
-                  <span id="gps-btn-label">Activar mi GPS</span>
-                </button>
-              </div>
-
-              <!-- Contenedor del Mapa Leaflet -->
-              <div class="interactive-map-box">
-                <div id="delivery-map" class="delivery-map"></div>
-                
-                <!-- Prompt sobre el mapa antes de activar GPS -->
-                <div id="map-overlay-prompt" class="map-overlay-prompt">
-                  <div class="map-overlay-content" onclick="requestGpsLocation()">
-                    <span class="overlay-icon">🎯</span>
-                    <strong>Tocar acá para activar tu GPS</strong>
-                    <small>Ubicará tu casa en el mapa automáticamente</small>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Estado de precisión y ayuda del GPS -->
-              <div id="gps-status-info" class="gps-status-info" style="display: none;"></div>
-            </div>
-
-            <!-- Input de Dirección autocompletada o manual -->
-            <div class="address-input-container">
-              <input type="text" id="customer-address" placeholder="Dirección (detectada por GPS o manual: Calle, N°, Depto) *" class="form-control">
+            <div class="drawer-gps-indicator">
+              <span class="gps-pulse-dot"></span>
+              <span id="drawer-gps-status-text">Ubicación GPS sincronizada</span>
             </div>
             
+            <input type="text" id="customer-address" placeholder="Dirección completa (Calle, Altura, Depto) *" class="form-control">
           </div>
 
           <div id="pickup-info-group" class="pickup-info-box" style="display: none;">
@@ -372,8 +404,8 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
   <!-- Scripts de la Tienda -->
-  <script src="config.js"></script>
-  <script src="app.js"></script>
+  <script src="config.js?v=2"></script>
+  <script src="app.js?v=2"></script>
   <script>
     document.getElementById("year-copy").textContent = new Date().getFullYear();
   </script>

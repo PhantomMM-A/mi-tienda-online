@@ -6,9 +6,9 @@
 const DEFAULT_STORE_CONFIG = {
   // Datos del Negocio
   storeName: "Nexus Shop",
-  storeTagline: "Tecnología, accesorios y tendencias a tu alcance ⚡",
+  storeTagline: "Tecnología, accesorios y tendencias con entrega por GPS ⚡",
   currency: "$",
-  whatsappNumber: "5491123456789", // Número que recibe los pedidos (se puede cambiar desde admin.html)
+  whatsappNumber: "5491123456789", // Número que recibe los pedidos (se cambia desde admin.html)
   instagramUser: "nexus_shop", // Tu usuario de Instagram (sin @)
   
   // Opciones de Entrega
@@ -19,13 +19,13 @@ const DEFAULT_STORE_CONFIG = {
 
   // Datos para Transferencia Bancaria
   bankDetails: {
-    bank: "Mercado Pago / Ualá / Galicia",
+    bank: "Mercado Pago / Ualá / Santander",
     alias: "NEXUS.SHOP.PAGOS",
     cbu: "0000003100018899220011",
     holder: "Nexus Shop SRL"
   },
 
-  // Categorías de Productos (Generales / Retail / Gadgets)
+  // Categorías de Productos Físicos
   categories: [
     { id: "all", name: "Todos" },
     { id: "destacados", name: "⭐ Destacados" },
@@ -100,7 +100,21 @@ const DEFAULT_STORE_CONFIG = {
   ]
 };
 
-// Función para obtener la configuración activa (combina localStorage con config por defecto)
+// Limpieza automática de caché antigua de comida si existiera
+(function cleanOldFoodCache() {
+  try {
+    const oldCart = localStorage.getItem("tienda_cart");
+    if (oldCart && (oldCart.includes("Burger") || oldCart.includes("Pizza") || oldCart.includes("Papas"))) {
+      localStorage.removeItem("tienda_cart");
+    }
+    const oldProds = localStorage.getItem("nexus_store_products");
+    if (oldProds && (oldProds.includes("Burger") || oldProds.includes("Pizza"))) {
+      localStorage.removeItem("nexus_store_products");
+    }
+  } catch (e) {}
+})();
+
+// Función para obtener la configuración activa
 function getActiveStoreConfig() {
   try {
     const customConfig = localStorage.getItem("nexus_store_config");
@@ -113,12 +127,13 @@ function getActiveStoreConfig() {
   return DEFAULT_STORE_CONFIG;
 }
 
-// Función para obtener los productos activos (combina localStorage con catálogo por defecto)
+// Función para obtener los productos activos
 function getActiveProducts() {
   try {
     const customProducts = localStorage.getItem("nexus_store_products");
     if (customProducts) {
-      return JSON.parse(customProducts);
+      const parsed = JSON.parse(customProducts);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
     }
   } catch (e) {
     console.error("Error al cargar productos personalizados:", e);
