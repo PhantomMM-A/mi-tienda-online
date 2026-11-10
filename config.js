@@ -1,101 +1,127 @@
 // =============================================================================
-// CONFIGURACIÓN DE TU TIENDA ONLINE
-// Editá este archivo para cambiar los datos de tu negocio, medios de pago y productos.
+// CONFIGURACIÓN POR DEFECTO DE TU TIENDA ONLINE
+// (Nota: Podés editar esto acá o gestionarlo directamente desde el Panel Dev / Admin: admin.html)
 // =============================================================================
 
-const STORE_CONFIG = {
+const DEFAULT_STORE_CONFIG = {
   // Datos del Negocio
-  storeName: "Mi Tienda Express",
-  storeTagline: "Pedí online y recibilo en tu puerta 🚀",
+  storeName: "Nexus Shop",
+  storeTagline: "Tecnología, accesorios y tendencias a tu alcance ⚡",
   currency: "$",
-  whatsappNumber: "5491123456789", // Formato internacional sin '+' ni espacios (Ej: 54911... para Argentina)
-  instagramUser: "mitienda_express", // Tu usuario de Instagram (sin @)
+  whatsappNumber: "5491123456789", // Número que recibe los pedidos (se puede cambiar desde admin.html)
+  instagramUser: "nexus_shop", // Tu usuario de Instagram (sin @)
   
   // Opciones de Entrega
-  deliveryCost: 1500, // Costo de envío a domicilio
-  freeDeliveryThreshold: 20000, // Envío gratis a partir de este monto (0 para desactivar)
+  deliveryCost: 2500, // Costo de envío a domicilio
+  freeDeliveryThreshold: 45000, // Envío gratis superando este monto (0 para desactivar)
   allowPickup: true, // Permitir retiro en el local
-  pickupAddress: "Av. Siempre Viva 742 (Centro)", // Dirección de retiro
+  pickupAddress: "Av. Corrientes 1450 (Centro)", // Dirección de retiro
 
   // Datos para Transferencia Bancaria
   bankDetails: {
-    bank: "Mercado Pago / Banco Galicia",
-    alias: "MI.TIENDA.PAGOS",
-    cbu: "0000003100010000000000",
-    holder: "Tu Nombre o Razón Social"
+    bank: "Mercado Pago / Ualá / Galicia",
+    alias: "NEXUS.SHOP.PAGOS",
+    cbu: "0000003100018899220011",
+    holder: "Nexus Shop SRL"
   },
 
-  // Categorías de Productos
+  // Categorías de Productos (Generales / Retail / Gadgets)
   categories: [
     { id: "all", name: "Todos" },
     { id: "destacados", name: "⭐ Destacados" },
-    { id: "combos", name: "🍔 Combos / Promos" },
-    { id: "principales", name: "🍕 Principales" },
-    { id: "bebidas", name: "🥤 Bebidas" }
+    { id: "audio", name: "🎧 Audio & Sonido" },
+    { id: "smartwatches", name: "⌚ Smartwatches" },
+    { id: "accesorios", name: "🔌 Carga & Accesorios" },
+    { id: "lifestyle", name: "🎒 Mochilas & Lifestyle" }
   ],
 
-  // Catálogo de Productos
-  // Podés agregar, quitar o modificar los productos que quieras
+  // Catálogo Inicial de Productos Físicos
   products: [
     {
       id: "prod-1",
-      name: "Combo Mega Burger",
-      category: "combos",
-      price: 8500,
-      description: "Doble carne smasheada, doble cheddar, bacon crocante, salsa especial con papas fritas.",
-      image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=700&q=80",
+      name: "Auriculares Inalámbricos Pro ANC",
+      category: "audio",
+      price: 28500,
+      description: "Cancelación activa de ruido, Bluetooth 5.3, estuche de carga con hasta 30hs de batería y sonido Hi-Fi.",
+      image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=700&q=80",
       featured: true,
       badge: "Más Vendido"
     },
     {
       id: "prod-2",
-      name: "Pizza Napolitana Especial",
-      category: "principales",
-      price: 9200,
-      description: "Masa madre 48hs de fermentación, mozzarella premium, rodajas de tomate fresco, ajo y albahaca.",
-      image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=700&q=80",
+      name: "Smartwatch Deportivo Ultra Serie 8",
+      category: "smartwatches",
+      price: 38900,
+      description: "Pantalla táctil AMOLED de 2.0'', monitor de ritmo cardíaco, oxígeno en sangre, notificaciones y resistente al agua IP68.",
+      image: "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&w=700&q=80",
       featured: true,
-      badge: "Oferta"
+      badge: "Oferta Flash"
     },
     {
       id: "prod-3",
-      name: "Papas Rústicas con Cheddar y Bacon",
-      category: "principales",
-      price: 5200,
-      description: "Papas rústicas cortadas a mano, bañadas en queso cheddar fundido y panceta crocante.",
-      image: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=700&q=80",
+      name: "Cargador Rápido 65W GaN Triple Puerto",
+      category: "accesorios",
+      price: 18400,
+      description: "Tecnología GaN ultra compacta, 2 puertos USB-C y 1 USB-A. Carga notebooks, tablets y celulares a máxima velocidad.",
+      image: "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?auto=format&fit=crop&w=700&q=80",
       featured: false,
-      badge: null
+      badge: "Novedad"
     },
     {
       id: "prod-4",
-      name: "Gaseosa Línea Coca-Cola 1.5L",
-      category: "bebidas",
-      price: 2800,
-      description: "Bien fría. Variedades: Regular, Zero o Sprite.",
-      image: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=700&q=80",
+      name: "Mochila Urbana Antirrobo Impermeable",
+      category: "lifestyle",
+      price: 34000,
+      description: "Compartimiento acolchado para notebook de hasta 15.6'', puerto USB exterior, cierres ocultos y tela repelente al agua.",
+      image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=700&q=80",
+      featured: true,
+      badge: "Top Calidad"
+    },
+    {
+      id: "prod-5",
+      name: "Parlante Portátil Bluetooth Waterproof",
+      category: "audio",
+      price: 22800,
+      description: "Sonido 360° con graves potentes, protección IPX7 contra agua, luces RGB al ritmo de la música y 12hs de batería.",
+      image: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?auto=format&fit=crop&w=700&q=80",
       featured: false,
       badge: null
     },
     {
-      id: "prod-5",
-      name: "Cerveza Artesanal IPA 500ml",
-      category: "bebidas",
-      price: 3500,
-      description: "Lata de cerveza artesanal rubia lupulada con toques cítricos.",
-      image: "https://images.unsplash.com/photo-1608270118542-a6f671da2df3?auto=format&fit=crop&w=700&q=80",
-      featured: false,
-      badge: "Artesanal"
-    },
-    {
       id: "prod-6",
-      name: "Super Combo Pareja",
-      category: "combos",
-      price: 15500,
-      description: "2 Hamburguesas completas + 1 porción grande de papas + 2 bebidas a elección.",
-      image: "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=700&q=80",
-      featured: true,
-      badge: "Ahorro 20%"
+      name: "Soporte Magnético Giratorio para Auto",
+      category: "accesorios",
+      price: 9500,
+      description: "Imanes de neodimio de alta potencia, compatible con MagSafe, giro 360° para rejilla de ventilación.",
+      image: "https://images.unsplash.com/photo-1616401784845-180882ba9ba8?auto=format&fit=crop&w=700&q=80",
+      featured: false,
+      badge: null
     }
   ]
 };
+
+// Función para obtener la configuración activa (combina localStorage con config por defecto)
+function getActiveStoreConfig() {
+  try {
+    const customConfig = localStorage.getItem("nexus_store_config");
+    if (customConfig) {
+      return { ...DEFAULT_STORE_CONFIG, ...JSON.parse(customConfig) };
+    }
+  } catch (e) {
+    console.error("Error al cargar config personalizada:", e);
+  }
+  return DEFAULT_STORE_CONFIG;
+}
+
+// Función para obtener los productos activos (combina localStorage con catálogo por defecto)
+function getActiveProducts() {
+  try {
+    const customProducts = localStorage.getItem("nexus_store_products");
+    if (customProducts) {
+      return JSON.parse(customProducts);
+    }
+  } catch (e) {
+    console.error("Error al cargar productos personalizados:", e);
+  }
+  return DEFAULT_STORE_CONFIG.products;
+}

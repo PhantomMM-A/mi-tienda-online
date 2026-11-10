@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Dev & Administración | Nexus Shop</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary: #10b981;
+      --primary-hover: #059669;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --danger: #ef4444;
+      --bg: #0f172a;
+      --bg-card: #1e293b;
+      --bg-card-subtle: #334155;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .admin-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .header-avatar {
+      font-size: 2rem;
+      background: #0284c7;
+      width: 50px;
+      height: 50px;
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header-title h1 {
+      font-size: 1.4rem;
+      font-weight: 800;
+    }
+
+    .header-title p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .view-store-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary);
+      color: white;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 10px 18px;
+      border-radius: var(--radius);
+      transition: all 0.2s ease;
+    }
+
+    .view-store-btn:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+    }
+
+    /* Tabs de navegación */
+    .tabs-nav {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 10px 18px;
+      border-radius: var(--radius);
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: var(--text);
+      border-color: #64748b;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .tab-badge {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+    }
+
+    /* Contenido de Tabs */
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.25s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Formularios y Tarjetas */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 640px) {
+      .form-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #cbd5e1;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="tel"],
+    select,
+    textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      color: white;
+      padding: 10px 14px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+    }
+
+    .help-text {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .btn {
+      padding: 11px 20px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-accent:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border: 1px solid #7f1d1d;
+    }
+
+    .btn-danger:hover {
+      background: var(--danger);
+      color: white;
+    }
+
+    /* Lista de Pedidos */
+    .orders-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .order-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .order-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    .order-id {
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: #38bdf8;
+    }
+
+    .order-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .order-status-badge {
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border: 1px solid;
+    }
+
+    .status-pendiente { background: #422006; color: #fde047; border-color: #854d0e; }
+    .status-preparando { background: #172554; color: #93c5fd; border-color: #1e40af; }
+    .status-en-camino { background: #3b0764; color: #e9d5ff; border-color: #7e22ce; }
+    .status-entregado { background: #052e16; color: #86efac; border-color: #166534; }
+    .status-cancelado { background: #450a0a; color: #fca5a5; border-color: #991b1b; }
+
+    .order-body {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 768px) {
+      .order-body {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .order-customer-box, .order-items-box {
+      background: var(--bg);
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 0.88rem;
+    }
+
+    .order-customer-box p {
+      margin-bottom: 6px;
+    }
+
+    .maps-link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #0284c7;
+      color: white;
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+
+    .maps-link-btn:hover {
+      background: #0369a1;
+    }
+
+    .order-items-list {
+      list-style: none;
+      margin-bottom: 10px;
+    }
+
+    .order-items-list li {
+      padding: 4px 0;
+      border-bottom: 1px dashed #334155;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .order-total-row {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--primary);
+      text-align: right;
+    }
+
+    .order-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+    }
+
+    .status-select-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Gestor de Catálogo */
+    .products-manager-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .prod-manage-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .prod-manage-img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      background: #0f172a;
+    }
+
+    .prod-manage-body {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      gap: 8px;
+    }
+
+    .prod-manage-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .prod-manage-price {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .prod-manage-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: auto;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .empty-orders {
+      text-align: center;
+      padding: 40px 20px;
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .empty-orders span {
+      font-size: 3rem;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    /* Toast */
+    .admin-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0284c7;
+      color: white;
+      padding: 12px 22px;
+      border-radius: 8px;
+      font-weight: 700;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+      z-index: 100;
+    }
+
+    .admin-toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Header del Panel -->
+    <header class="admin-header">
+      <div class="header-left">
+        <div class="header-avatar">⚙️</div>
+        <div class="header-title">
+          <h1>Panel Dev & Administración</h1>
+          <p>Configurá tu número de WhatsApp, gestioná productos y revisá pedidos con GPS</p>
+        </div>
+      </div>
+      <a href="index.html" class="view-store-btn" target="_blank">
+        🛍️ Ver Tienda en Vivo →
+      </a>
+    </header>
+
+    <!-- Navegación por pestañas -->
+    <nav class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('orders-tab')">
+        📦 Pedidos y Ubicaciones <span id="orders-badge-count" class="tab-badge">0</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('settings-tab')">
+        📱 Número de WhatsApp y Configuración
+      </button>
+      <button class="tab-btn" onclick="switchTab('products-tab')">
+        🏷️ Catálogo de Productos <span id="prods-badge-count" class="tab-badge">0</span>
+      </button>
+    </nav>
+
+    <!-- TAB 1: PEDIDOS RECIBIDOS & UBICACIONES GPS -->
+    <section id="orders-tab" class="tab-content active">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
+          <div>
+            <h2 class="card-title">📦 Historial de Pedidos Recibidos</h2>
+            <p class="card-subtitle" style="margin-bottom: 0;">Los pedidos que los clientes confirman quedan guardados acá con su ubicación GPS y detalle.</p>
+          </div>
+          <button class="btn btn-danger" onclick="clearAllOrders()">🗑️ Borrar Historial</button>
+        </div>
+
+        <div id="orders-container" class="orders-grid">
+          <!-- Inyectado por JS -->
+        </div>
+
+        <div id="empty-orders-view" class="empty-orders" style="display: none;">
+          <span>📭</span>
+          <h3>Aún no hay pedidos registrados</h3>
+          <p>Cuando un cliente confirme un pedido desde la tienda web, aparecerá aquí automáticamente con su GPS y detalle.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: CONFIGURACIÓN GENERAL Y WHATSAPP -->
+    <section id="settings-tab" class="tab-content">
+      <div class="card">
+        <h2 class="card-title">📱 Número de WhatsApp de Destino</h2>
+        <p class="card-subtitle">Este es el número exacto al que llegarán todos los pedidos cuando los usuarios presionen el botón de comprar.</p>
+
+        <form id="store-settings-form" onsubmit="saveStoreSettings(event)">
+          <div class="form-grid">
+            
+            <div class="form-group full-width" style="background: rgba(16, 185, 129, 0.1); border: 1.5px solid var(--primary); padding: 18px; border-radius: 10px;">
+              <label for="cfg-whatsapp" style="color: #6ee7b7; font-size: 0.95rem;">
+                📞 Número de WhatsApp para Recibir Pedidos (con código de país sin '+'):
+              </label>
+              <input type="text" id="cfg-whatsapp" placeholder="Ej: 5491123456789 (Argentina: 549 + código de área + número)" required style="font-size: 1.05rem; font-weight: bold; color: #a7f3d0;">
+              <span class="help-text" style="color: #6ee7b7;">
+                💡 <b>Importante:</b> Para Argentina poné `549` adelante (ej: `5491199998888`). Para México `52`, Colombia `57`, Chile `56`, España `34`, etc.
+              </span>
+            </div>
+
+            <div class="form-group">
+              <label for="cfg-storename">Nombre de tu Tienda / Marca:</label>
+              <input type="text" id="cfg-storename" required>
+            </div>
+
+            <div class="form-group">
+              <label for="cfg-tagline">Slogan / Frase de Portada:</label>
+              <input type="text" id="cfg-tagline">
+            </div>
+
+            <div class="form-group">
+              <label for="cfg-delivery-cost">Costo de Envío a Domicilio ($):</label>
+              <input type="number" id="cfg-delivery-cost" min="0" required>
+            </div>
+
+            <div class="form-group">
+              <label for="cfg-free-shipping">Envío Gratis superando ($) [0 para desactivar]:</label>
+              <input type="number" id="cfg-free-shipping" min="0" required>
+            </div>
+
+            <div class="form-group">
+              <label for="cfg-pickup-addr">Dirección para Retiro en Local:</label>
+              <input type="text" id="cfg-pickup-addr">
+            </div>
+
+            <div class="form-group">
+              <label for="cfg-instagram">Usuario de Instagram (sin @):</label>
+              <input type="text" id="cfg-instagram" placeholder="Ej: mitienda_oficial">
+            </div>
+
+            <div class="form-group full-width">
+              <h3 style="font-size: 1rem; margin-top: 10px; margin-bottom: 6px;">💳 Datos para Transferencia Bancaria</h3>
+            </div>
+
+            <div class="form-group">
+              <label for="cfg-bank-name">Nombre del Banco o Billetera:</label>
+              <input type="text" id="cfg-bank-name" placeholder="Ej: Mercado Pago / Santander">
+            </div>
+
+            <div class="form-group">
+              <label for="cfg-bank-alias">Alias de Transferencia:</label>
+              <input type="text" id="cfg-bank-alias" placeholder="Ej: MI.NEGOCIO.PAGOS">
+            </div>
+
+            <div class="form-group">
+              <label for="cfg-bank-cbu">CBU / CVU:</label>
+              <input type="text" id="cfg-bank-cbu">
+            </div>
+
+            <div class="form-group">
+              <label for="cfg-bank-holder">Nombre del Titular:</label>
+              <input type="text" id="cfg-bank-holder">
+            </div>
+
+            <div class="form-group full-width" style="margin-top: 10px;">
+              <button type="submit" class="btn btn-primary" style="font-size: 1rem;">
+                💾 Guardar Configuración
+              </button>
+            </div>
+
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- TAB 3: GESTOR DE PRODUCTOS -->
+    <section id="products-tab" class="tab-content">
+      
+      <!-- Formulario para agregar / editar producto -->
+      <div class="card">
+        <h2 id="product-form-title" class="card-title">➕ Agregar Nuevo Producto Físico al Catálogo</h2>
+        <p class="card-subtitle">Completá los datos del artículo. Podés ingresar una URL de imagen o subir una foto directamente desde tu dispositivo.</p>
+
+        <form id="product-crud-form" onsubmit="handleProductSubmit(event)">
+          <input type="hidden" id="prod-edit-id">
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="prod-name">Nombre del Producto *:</label>
+              <input type="text" id="prod-name" placeholder="Ej: Reloj Smartwatch Deportivo" required>
+            </div>
+
+            <div class="form-group">
+              <label for="prod-category">Categoría *:</label>
+              <select id="prod-category" required>
+                <option value="audio">🎧 Audio & Sonido</option>
+                <option value="smartwatches">⌚ Smartwatches</option>
+                <option value="accesorios">🔌 Carga & Accesorios</option>
+                <option value="lifestyle">🎒 Mochilas & Lifestyle</option>
+                <option value="otros">📦 Otros Productos</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="prod-price">Precio ($) *:</label>
+              <input type="number" id="prod-price" min="0" placeholder="Ej: 35000" required>
+            </div>
+
+            <div class="form-group">
+              <label for="prod-badge">Etiqueta destacada (Opcional):</label>
+              <input type="text" id="prod-badge" placeholder="Ej: Más Vendido / Oferta / Novedad">
+            </div>
+
+            <div class="form-group full-width">
+              <label for="prod-desc">Descripción detallada:</label>
+              <textarea id="prod-desc" rows="2" placeholder="Características principales, materiales, especificaciones..."></textarea>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="prod-img-url">Foto del Producto (URL o subir archivo):</label>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="text" id="prod-img-url" placeholder="https://images.unsplash.com/..." style="flex: 1; min-width: 200px;">
+                <label class="btn btn-accent" style="cursor: pointer; margin: 0;">
+                  📁 Subir Foto desde tu PC
+                  <input type="file" id="prod-file-input" accept="image/*" style="display: none;" onchange="handleFileUpload(event)">
+                </label>
+              </div>
+              <span class="help-text">Si subís una imagen desde tu PC, se guardará automáticamente sin necesidad de servidores externos.</span>
+            </div>
+
+            <!-- Vista previa de imagen -->
+            <div id="image-preview-box" class="form-group full-width" style="display: none;">
+              <label>Vista previa de imagen:</label>
+              <img id="img-preview" src="" alt="Vista previa" style="width: 140px; height: 140px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);">
+            </div>
+
+            <div class="form-group full-width" style="display: flex; align-items: center; gap: 10px;">
+              <input type="checkbox" id="prod-featured" style="width: 18px; height: 18px;">
+              <label for="prod-featured" style="margin: 0; cursor: pointer;">Mostrar como producto <b>⭐ Destacado</b> en la página principal</label>
+            </div>
+
+            <div class="form-group full-width" style="display: flex; gap: 10px; margin-top: 10px;">
+              <button type="submit" id="prod-submit-btn" class="btn btn-primary">
+                ➕ Agregar Producto
+              </button>
+              <button type="button" id="prod-cancel-btn" class="btn btn-danger" style="display: none;" onclick="cancelProductEdit()">
+                Cancelar Edición
+              </button>
+            </div>
+
+          </div>
+        </form>
+      </div>
+
+      <!-- Lista actual de productos -->
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+          <div>
+            <h2 class="card-title">📦 Catálogo de Productos Actuales</h2>
+            <p class="card-subtitle" style="margin-bottom: 0;">Modificá precios, cambiá fotos o eliminá productos en tiempo real.</p>
+          </div>
+          <button class="btn btn-danger" onclick="resetCatalogToDefault()">
+            🔄 Restaurar Catálogo de Fábrica
+          </button>
+        </div>
+
+        <div id="products-manager-list" class="products-manager-grid">
+          <!-- Renderizado dinámicamente -->
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div id="admin-toast" class="admin-toast">Configuración guardada correctamente ✨</div>
+
+  <script src="config.js"></script>
+  <script>
+    // =========================================================================
+    // LÓGICA DEL PANEL DEV & ADMINISTRACIÓN
+    // =========================================================================
+
+    let currentConfig = getActiveStoreConfig();
+    let currentProducts = getActiveProducts();
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadSettingsToForm();
+      renderOrders();
+      renderProductsManager();
+    });
+
+    // Gestión de Tabs
+    function switchTab(tabId) {
+      document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
+      document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
+
+      document.getElementById(tabId).classList.add("active");
+      
+      const activeBtn = Array.from(document.querySelectorAll(".tab-btn")).find(btn => 
+        btn.getAttribute("onclick").includes(tabId)
+      );
+      if (activeBtn) activeBtn.classList.add("active");
+    }
+
+    // Toast feedback
+    function showAdminToast(msg) {
+      const toast = document.getElementById("admin-toast");
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3000);
+    }
+
+    // -------------------------------------------------------------------------
+    // SECCIÓN 1: CONFIGURACIÓN GENERAL Y WHATSAPP
+    // -------------------------------------------------------------------------
+    function loadSettingsToForm() {
+      currentConfig = getActiveStoreConfig();
+
+      document.getElementById("cfg-whatsapp").value = currentConfig.whatsappNumber || "";
+      document.getElementById("cfg-storename").value = currentConfig.storeName || "";
+      document.getElementById("cfg-tagline").value = currentConfig.storeTagline || "";
+      document.getElementById("cfg-delivery-cost").value = currentConfig.deliveryCost ?? 2500;
+      document.getElementById("cfg-free-shipping").value = currentConfig.freeDeliveryThreshold ?? 45000;
+      document.getElementById("cfg-pickup-addr").value = currentConfig.pickupAddress || "";
+      document.getElementById("cfg-instagram").value = currentConfig.instagramUser || "";
+
+      document.getElementById("cfg-bank-name").value = currentConfig.bankDetails?.bank || "";
+      document.getElementById("cfg-bank-alias").value = currentConfig.bankDetails?.alias || "";
+      document.getElementById("cfg-bank-cbu").value = currentConfig.bankDetails?.cbu || "";
+      document.getElementById("cfg-bank-holder").value = currentConfig.bankDetails?.holder || "";
+    }
+
+    function saveStoreSettings(e) {
+      e.preventDefault();
+
+      let whatsapp = document.getElementById("cfg-whatsapp").value.trim().replace(/\D/g, ""); // Solo dígitos
+      if (!whatsapp) {
+        alert("Por favor ingresá un número de WhatsApp válido.");
+        return;
+      }
+
+      const updated = {
+        ...currentConfig,
+        whatsappNumber: whatsapp,
+        storeName: document.getElementById("cfg-storename").value.trim(),
+        storeTagline: document.getElementById("cfg-tagline").value.trim(),
+        deliveryCost: Number(document.getElementById("cfg-delivery-cost").value),
+        freeDeliveryThreshold: Number(document.getElementById("cfg-free-shipping").value),
+        pickupAddress: document.getElementById("cfg-pickup-addr").value.trim(),
+        instagramUser: document.getElementById("cfg-instagram").value.trim(),
+        bankDetails: {
+          bank: document.getElementById("cfg-bank-name").value.trim(),
+          alias: document.getElementById("cfg-bank-alias").value.trim(),
+          cbu: document.getElementById("cfg-bank-cbu").value.trim(),
+          holder: document.getElementById("cfg-bank-holder").value.trim()
+        }
+      };
+
+      localStorage.setItem("nexus_store_config", JSON.stringify(updated));
+      currentConfig = updated;
+      showAdminToast("✅ ¡Configuración y número de WhatsApp guardados!");
+    }
+
+    // -------------------------------------------------------------------------
+    // SECCIÓN 2: HISTORIAL DE PEDIDOS CON GPS
+    // -------------------------------------------------------------------------
+    function renderOrders() {
+      const container = document.getElementById("orders-container");
+      const emptyView = document.getElementById("empty-orders-view");
+      const badgeCount = document.getElementById("orders-badge-count");
+
+      let orders = [];
+      try {
+        orders = JSON.parse(localStorage.getItem("tienda_orders") || "[]");
+      } catch (e) {
+        orders = [];
+      }
+
+      badgeCount.textContent = orders.length;
+
+      if (orders.length === 0) {
+        container.innerHTML = "";
+        emptyView.style.display = "block";
+        return;
+      }
+
+      emptyView.style.display = "none";
+      container.innerHTML = orders.map((order, idx) => {
+        const isShipping = order.customer.deliveryMethod === "shipping";
+        const statusClass = `status-${(order.status || 'pendiente').toLowerCase().replace(/\s+/g, '-')}`;
+
+        let gpsHtml = "";
+        if (order.customer.gps && order.customer.gps.mapUrl) {
+          gpsHtml = `
+            <div style="margin-top: 8px;">
+              <span style="font-size: 0.8rem; color: #38bdf8;">📍 Coordenadas: ${order.customer.gps.lat.toFixed(5)}, ${order.customer.gps.lng.toFixed(5)}</span><br>
+              <a href="${order.customer.gps.mapUrl}" target="_blank" class="maps-link-btn">
+                🗺️ Abrir en Google Maps / Waze
+              </a>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="order-card">
+            <div class="order-header">
+              <div>
+                <span class="order-id">Pedido #${order.id}</span>
+                <span class="order-meta"> • ${order.date}</span>
+              </div>
+              <div>
+                <span class="order-status-badge ${statusClass}">
+                  ${order.status || 'Pendiente'}
+                </span>
+              </div>
+            </div>
+
+            <div class="order-body">
+              <div class="order-customer-box">
+                <p>👤 <b>Cliente:</b> ${order.customer.name}</p>
+                <p>📱 <b>Teléfono:</b> <a href="https://wa.me/${order.customer.phone.replace(/\D/g, '')}" target="_blank" style="color: #4ade80;">${order.customer.phone} ↗</a></p>
+                <p>🛵 <b>Entrega:</b> ${isShipping ? 'A domicilio' : 'Retiro en sucursal'}</p>
+                <p>📍 <b>Dirección:</b> ${order.customer.address}</p>
+                ${gpsHtml}
+                <p style="margin-top: 6px;">📝 <b>Notas:</b> <i>${order.customer.notes}</i></p>
+              </div>
+
+              <div class="order-items-box">
+                <p style="font-weight: 700; margin-bottom: 6px;">Artículos:</p>
+                <ul class="order-items-list">
+                  ${order.items.map(item => `
+                    <li>
+                      <span>${item.quantity}x ${item.name}</span>
+                      <span>$${(item.price * item.quantity).toLocaleString('es-AR')}</span>
+                    </li>
+                  `).join('')}
+                </ul>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted);">
+                  <span>Envío:</span>
+                  <span>${order.shippingCost === 0 ? 'Gratis' : '$' + order.shippingCost.toLocaleString('es-AR')}</span>
+                </div>
+                <div class="order-total-row">
+                  TOTAL: $${order.total.toLocaleString('es-AR')}
+                </div>
+                <div style="font-size: 0.82rem; margin-top: 6px; color: #cbd5e1;">
+                  💳 <b>Pago:</b> ${order.paymentMethod === 'cash' ? 'Efectivo al recibir' : 'Transferencia Bancaria'}
+                  ${order.cashAmount > 0 ? ` (Abona con: $${order.cashAmount.toLocaleString('es-AR')} | Vuelto: $${order.cashChange.toLocaleString('es-AR')})` : ''}
+                </div>
+              </div>
+            </div>
+
+            <div class="order-actions">
+              <div class="status-select-wrap">
+                <label style="font-size: 0.85rem;">Cambiar estado:</label>
+                <select onchange="updateOrderStatus(${order.id}, this.value)" style="width: auto; padding: 6px 10px;">
+                  <option value="Pendiente" ${order.status === 'Pendiente' ? 'selected' : ''}>🟡 Pendiente</option>
+                  <option value="Preparando" ${order.status === 'Preparando' ? 'selected' : ''}>🔵 Preparando</option>
+                  <option value="En camino" ${order.status === 'En camino' ? 'selected' : ''}>🛵 En camino</option>
+                  <option value="Entregado" ${order.status === 'Entregado' ? 'selected' : ''}>🟢 Entregado</option>
+                  <option value="Cancelado" ${order.status === 'Cancelado' ? 'selected' : ''}>🔴 Cancelado</option>
+                </select>
+              </div>
+
+              <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8rem;" onclick="deleteOrder(${order.id})">
+                Eliminar Pedido
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateOrderStatus(orderId, newStatus) {
+      let orders = JSON.parse(localStorage.getItem("tienda_orders") || "[]");
+      const target = orders.find(o => o.id === orderId);
+      if (target) {
+        target.status = newStatus;
+        localStorage.setItem("tienda_orders", JSON.stringify(orders));
+        renderOrders();
+        showAdminToast(`Estado actualizado a: ${newStatus}`);
+      }
+    }
+
+    function deleteOrder(orderId) {
+      if (confirm(`¿Estás seguro de eliminar el pedido #${orderId}?`)) {
+        let orders = JSON.parse(localStorage.getItem("tienda_orders") || "[]");
+        orders = orders.filter(o => o.id !== orderId);
+        localStorage.setItem("tienda_orders", JSON.stringify(orders));
+        renderOrders();
+        showAdminToast("Pedido eliminado.");
+      }
+    }
+
+    function clearAllOrders() {
+      if (confirm("¿Estás seguro de vaciar TODO el historial de pedidos?")) {
+        localStorage.removeItem("tienda_orders");
+        renderOrders();
+        showAdminToast("Historial vaciado.");
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // SECCIÓN 3: GESTOR DE PRODUCTOS (SUBIR, EDITAR, ELIMINAR)
+    // -------------------------------------------------------------------------
+    function renderProductsManager() {
+      const container = document.getElementById("products-manager-list");
+      const badgeCount = document.getElementById("prods-badge-count");
+      currentProducts = getActiveProducts();
+
+      badgeCount.textContent = currentProducts.length;
+
+      container.innerHTML = currentProducts.map(prod => `
+        <div class="prod-manage-card">
+          <img src="${prod.image}" alt="${prod.name}" class="prod-manage-img" onerror="this.src='https://via.placeholder.com/300x200?text=Sin+Foto'">
+          <div class="prod-manage-body">
+            <span style="font-size: 0.75rem; color: #38bdf8; text-transform: uppercase; font-weight: 700;">${prod.category}</span>
+            <h4 class="prod-manage-title">${prod.name}</h4>
+            <span class="prod-manage-price">$${Number(prod.price).toLocaleString('es-AR')}</span>
+            <p style="font-size: 0.8rem; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+              ${prod.description || 'Sin descripción'}
+            </p>
+            <div class="prod-manage-actions">
+              <button class="btn btn-accent" style="flex: 1; padding: 6px;" onclick="editProduct('${prod.id}')">✏️ Editar</button>
+              <button class="btn btn-danger" style="padding: 6px 10px;" onclick="deleteProduct('${prod.id}')">🗑️</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function handleFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64Img = event.target.result;
+        document.getElementById("prod-img-url").value = base64Img;
+        document.getElementById("img-preview").src = base64Img;
+        document.getElementById("image-preview-box").style.display = "block";
+      };
+      reader.readAsDataURL(file);
+    }
+
+    document.getElementById("prod-img-url").addEventListener("input", (e) => {
+      const val = e.target.value.trim();
+      if (val) {
+        document.getElementById("img-preview").src = val;
+        document.getElementById("image-preview-box").style.display = "block";
+      } else {
+        document.getElementById("image-preview-box").style.display = "none";
+      }
+    });
+
+    function handleProductSubmit(e) {
+      e.preventDefault();
+
+      const editId = document.getElementById("prod-edit-id").value;
+      const name = document.getElementById("prod-name").value.trim();
+      const category = document.getElementById("prod-category").value;
+      const price = Number(document.getElementById("prod-price").value);
+      const badge = document.getElementById("prod-badge").value.trim() || null;
+      const desc = document.getElementById("prod-desc").value.trim();
+      const img = document.getElementById("prod-img-url").value.trim() || "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=600&q=80";
+      const featured = document.getElementById("prod-featured").checked;
+
+      let products = getActiveProducts();
+
+      if (editId) {
+        // Editar existente
+        const idx = products.findIndex(p => p.id === editId);
+        if (idx !== -1) {
+          products[idx] = {
+            ...products[idx],
+            name,
+            category,
+            price,
+            badge,
+            description: desc,
+            image: img,
+            featured
+          };
+          showAdminToast(`¡Producto "${name}" actualizado!`);
+        }
+      } else {
+        // Nuevo producto
+        const newProd = {
+          id: "prod-" + Date.now(),
+          name,
+          category,
+          price,
+          badge,
+          description: desc,
+          image: img,
+          featured
+        };
+        products.unshift(newProd);
+        showAdminToast(`¡Producto "${name}" agregado al catálogo!`);
+      }
+
+      localStorage.setItem("nexus_store_products", JSON.stringify(products));
+      cancelProductEdit();
+      renderProductsManager();
+    }
+
+    function editProduct(productId) {
+      const prod = currentProducts.find(p => p.id === productId);
+      if (!prod) return;
+
+      document.getElementById("prod-edit-id").value = prod.id;
+      document.getElementById("prod-name").value = prod.name;
+      document.getElementById("prod-category").value = prod.category;
+      document.getElementById("prod-price").value = prod.price;
+      document.getElementById("prod-badge").value = prod.badge || "";
+      document.getElementById("prod-desc").value = prod.description || "";
+      document.getElementById("prod-img-url").value = prod.image || "";
+      document.getElementById("prod-featured").checked = !!prod.featured;
+
+      if (prod.image) {
+        document.getElementById("img-preview").src = prod.image;
+        document.getElementById("image-preview-box").style.display = "block";
+      }
+
+      document.getElementById("product-form-title").textContent = `✏️ Editando: ${prod.name}`;
+      document.getElementById("prod-submit-btn").textContent = "💾 Guardar Cambios";
+      document.getElementById("prod-cancel-btn").style.display = "inline-flex";
+
+      // Scroll hasta el formulario
+      document.getElementById("product-form-title").scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cancelProductEdit() {
+      document.getElementById("product-crud-form").reset();
+      document.getElementById("prod-edit-id").value = "";
+      document.getElementById("image-preview-box").style.display = "none";
+      document.getElementById("product-form-title").textContent = "➕ Agregar Nuevo Producto Físico al Catálogo";
+      document.getElementById("prod-submit-btn").textContent = "➕ Agregar Producto";
+      document.getElementById("prod-cancel-btn").style.display = "none";
+    }
+
+    function deleteProduct(productId) {
+      const prod = currentProducts.find(p => p.id === productId);
+      const name = prod ? prod.name : "este producto";
+
+      if (confirm(`¿Estás seguro de eliminar "${name}" del catálogo?`)) {
+        let products = getActiveProducts();
+        products = products.filter(p => p.id !== productId);
+        localStorage.setItem("nexus_store_products", JSON.stringify(products));
+        renderProductsManager();
+        showAdminToast(`Producto eliminado.`);
+      }
+    }
+
+    function resetCatalogToDefault() {
+      if (confirm("¿Deseás restaurar el catálogo a los productos originales de fábrica? Se perderán las modificaciones personalizadas.")) {
+        localStorage.removeItem("nexus_store_products");
+        renderProductsManager();
+        showAdminToast("Catálogo restaurado a valores por defecto.");
+      }
+    }
+  </script>
+</body>
+</html>

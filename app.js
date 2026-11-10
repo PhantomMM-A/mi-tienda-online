@@ -1,6 +1,9 @@
 // =============================================================================
-// LÓGICA DE LA APLICACIÓN (CARRITO, BÚSQUEDA, MODALES Y WHATSAPP)
+// LÓGICA PRINCIPAL (CARRITO, BÚSQUEDA, GPS Y ENVÍO A WHATSAPP)
 // =============================================================================
+
+let storeConfig = getActiveStoreConfig();
+let storeProducts = getActiveProducts();
 
 let currentCategory = "all";
 let searchQuery = "";
@@ -8,9 +11,14 @@ let cart = [];
 let deliveryMethod = "shipping"; // 'shipping' o 'pickup'
 let modalSelectedProduct = null;
 let modalQuantity = 1;
+let currentGpsData = null; // Almacenará latitud, longitud y link de Google Maps
 
 // Inicialización cuando carga el DOM
 document.addEventListener("DOMContentLoaded", () => {
+  // Recargar config y productos actualizados
+  storeConfig = getActiveStoreConfig();
+  storeProducts = getActiveProducts();
+
   loadCartFromStorage();
   initStoreInfo();
   renderCategories();
@@ -20,31 +28,32 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // -----------------------------------------------------------------------------
-// Inicializar Datos de Tienda desde STORE_CONFIG
+// Inicializar Datos de Tienda
 // -----------------------------------------------------------------------------
 function initStoreInfo() {
-  document.getElementById("brand-name").textContent = STORE_CONFIG.storeName;
-  document.getElementById("store-tagline").textContent = STORE_CONFIG.storeTagline;
-  document.title = `${STORE_CONFIG.storeName} | Pedí Online`;
+  document.getElementById("brand-name").textContent = storeConfig.storeName;
+  document.getElementById("store-tagline").textContent = storeConfig.storeTagline;
+  document.getElementById("footer-store-name").textContent = storeConfig.storeName;
+  document.title = `${storeConfig.storeName} | Catálogo y Pedidos`;
   
-  if (STORE_CONFIG.instagramUser) {
-    document.getElementById("instagram-link").href = `https://instagram.com/${STORE_CONFIG.instagramUser}`;
+  if (storeConfig.instagramUser) {
+    document.getElementById("instagram-link").href = `https://instagram.com/${storeConfig.instagramUser}`;
   } else {
     document.getElementById("instagram-link").style.display = "none";
   }
 
   // Datos bancarios
-  document.getElementById("bank-name").textContent = STORE_CONFIG.bankDetails.bank;
-  document.getElementById("bank-alias").textContent = STORE_CONFIG.bankDetails.alias;
-  document.getElementById("bank-holder").textContent = STORE_CONFIG.bankDetails.holder;
-  document.getElementById("pickup-address-text").textContent = STORE_CONFIG.pickupAddress;
+  document.getElementById("bank-name").textContent = storeConfig.bankDetails.bank;
+  document.getElementById("bank-alias").textContent = storeConfig.bankDetails.alias;
+  document.getElementById("bank-holder").textContent = storeConfig.bankDetails.holder;
+  document.getElementById("pickup-address-text").textContent = storeConfig.pickupAddress;
 }
 
 // -----------------------------------------------------------------------------
 // Formato de Moneda
 // -----------------------------------------------------------------------------
 function formatPrice(number) {
-  return STORE_CONFIG.currency + Number(number).toLocaleString("es-AR");
+  return storeConfig.currency + Number(number).toLocaleString("es-AR");
 }
 
 // -----------------------------------------------------------------------------
@@ -54,7 +63,7 @@ function renderCategories() {
   const container = document.getElementById("category-pills");
   container.innerHTML = "";
 
-  STORE_CONFIG.categories.forEach(cat => {
+  storeConfig.categories.forEach(cat => {
     const btn = document.createElement("button");
     btn.className = `category-pill ${cat.id === currentCategory ? "active" : ""}`;
     btn.textContent = cat.name;
@@ -66,13 +75,12 @@ function renderCategories() {
 function selectCategory(catId) {
   currentCategory = catId;
   
-  // Actualizar clases activas
   document.querySelectorAll(".category-pill").forEach(pill => {
-    const isThis = pill.textContent.trim() === STORE_CONFIG.categories.find(c => c.id === catId)?.name;
+    const isThis = pill.textContent.trim() === storeConfig.categories.find(c => c.id === catId)?.name;
     pill.classList.toggle("active", isThis);
   });
 
-  const catObj = STORE_CONFIG.categories.find(c => c.id === catId);
+  const catObj = storeConfig.categories.find(c => c.id === catId);
   document.getElementById("current-category-title").textContent = catObj ? catObj.name : "Catálogo";
 
   renderProducts();
@@ -86,7 +94,7 @@ function renderProducts() {
   const noProductsMsg = document.getElementById("no-products-msg");
   const countBadge = document.getElementById("product-count");
 
-  let filtered = STORE_CONFIG.products;
+  let filtered = storeProducts;
 
   // Filtro por categoría
   if (currentCategory === "destacados") {
@@ -135,7 +143,7 @@ function renderProducts() {
 // Modal Detalle de Producto
 // -----------------------------------------------------------------------------
 function openProductModal(productId) {
-  const product = STORE_CONFIG.products.find(p => p.id === productId);
+  const product = storeProducts.find(p => p.id === productId);
   if (!product) return;
 
   modalSelectedProduct = product;
@@ -190,7 +198,7 @@ function saveCartToStorage() {
 }
 
 function addToCart(productId, quantity = 1) {
-  const product = STORE_CONFIG.products.find(p => p.id === productId);
+  const product = storeProducts.find(p => p.id === productId);
   if (!product) return;
 
   const existing = cart.find(item => item.id === productId);
@@ -240,22 +248,20 @@ function updateCartUI() {
   // Costo de envío
   let shippingCost = 0;
   if (deliveryMethod === "shipping") {
-    if (STORE_CONFIG.freeDeliveryThreshold > 0 && subtotal >= STORE_CONFIG.freeDeliveryThreshold) {
+    if (storeConfig.freeDeliveryThreshold > 0 && subtotal >= storeConfig.freeDeliveryThreshold) {
       shippingCost = 0;
     } else {
-      shippingCost = STORE_CONFIG.deliveryCost;
+      shippingCost = storeConfig.deliveryCost;
     }
   }
 
   const finalTotal = subtotal + shippingCost;
 
-  // Badges y contadores
   document.getElementById("cart-count-badge").textContent = totalCount;
   document.getElementById("drawer-item-count").textContent = `${totalCount} item${totalCount === 1 ? '' : 's'}`;
   document.getElementById("floating-cart-count").textContent = `${totalCount} producto${totalCount === 1 ? '' : 's'}`;
   document.getElementById("floating-cart-total").textContent = formatPrice(finalTotal);
 
-  // Mostrar / ocultar barra flotante
   const floatingBar = document.getElementById("floating-cart-bar");
   if (totalCount > 0) {
     floatingBar.style.display = "block";
@@ -263,7 +269,6 @@ function updateCartUI() {
     floatingBar.style.display = "none";
   }
 
-  // Drawer Carrito
   const itemsContainer = document.getElementById("cart-items-container");
   const emptyView = document.getElementById("cart-empty-view");
   const checkoutSection = document.getElementById("cart-checkout-section");
@@ -294,10 +299,8 @@ function updateCartUI() {
     `).join("");
   }
 
-  // Actualizar Resumen de Precios
   document.getElementById("summary-subtotal").textContent = formatPrice(subtotal);
   
-  const shippingLine = document.getElementById("summary-shipping-line");
   const shippingVal = document.getElementById("summary-shipping");
   if (deliveryMethod === "pickup") {
     shippingVal.textContent = "Gratis (Retiro)";
@@ -311,8 +314,6 @@ function updateCartUI() {
   }
 
   document.getElementById("summary-total").textContent = formatPrice(finalTotal);
-
-  // Recalcular cambio si el cliente puso con cuánto paga
   recalcCashChange(finalTotal);
 }
 
@@ -340,7 +341,7 @@ function recalcCashChange(total) {
 function openCartDrawer() {
   document.getElementById("cart-drawer").classList.add("open");
   document.getElementById("cart-drawer-overlay").style.display = "block";
-  document.body.style.overflow = "hidden"; // Prevenir scroll de fondo
+  document.body.style.overflow = "hidden";
 }
 
 function closeCartDrawer() {
@@ -365,6 +366,108 @@ function showToast(message) {
 }
 
 // -----------------------------------------------------------------------------
+// API DE GEOLOCALIZACIÓN Y GPS
+// -----------------------------------------------------------------------------
+function requestGpsLocation() {
+  const gpsBtn = document.getElementById("get-gps-btn");
+  const gpsBtnLabel = document.getElementById("gps-btn-label");
+  const statusBox = document.getElementById("gps-status");
+  const addressInput = document.getElementById("customer-address");
+
+  if (!navigator.geolocation) {
+    statusBox.textContent = "Tu navegador no soporta geolocalización GPS.";
+    statusBox.className = "gps-status error";
+    statusBox.style.display = "block";
+    return;
+  }
+
+  gpsBtn.classList.add("loading");
+  gpsBtnLabel.textContent = "Buscando GPS...";
+  statusBox.textContent = "🛰️ Conectando con satélites GPS... Por favor aceptá el permiso de ubicación.";
+  statusBox.className = "gps-status";
+  statusBox.style.display = "block";
+
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      const accuracy = Math.round(position.coords.accuracy);
+
+      const mapUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+      currentGpsData = { lat, lng, accuracy, mapUrl };
+
+      gpsBtn.classList.remove("loading");
+      gpsBtnLabel.textContent = "✓ GPS Listo";
+
+      // Intentar obtener dirección textual por OpenStreetMap Nominatim
+      try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`, {
+          headers: { 'Accept-Language': 'es' }
+        });
+        const data = await response.json();
+        if (data && data.address) {
+          const street = data.address.road || data.address.pedestrian || "";
+          const number = data.address.house_number || "";
+          const neighbourhood = data.address.suburb || data.address.neighbourhood || data.address.city_district || "";
+          const city = data.address.city || data.address.town || "";
+          
+          let formattedAddr = [street, number].filter(Boolean).join(" ");
+          if (neighbourhood) formattedAddr += `, ${neighbourhood}`;
+          if (city) formattedAddr += ` (${city})`;
+
+          if (formattedAddr.trim() !== "") {
+            addressInput.value = formattedAddr;
+          }
+        }
+      } catch (err) {
+        console.warn("No se pudo resolver la dirección textual por geocodificación inversa:", err);
+      }
+
+      statusBox.className = "gps-status";
+      statusBox.innerHTML = `✅ <b>Ubicación GPS capturada</b> (Margen: ~${accuracy}m) • <a href="${mapUrl}" target="_blank" style="color: #2563eb; text-decoration: underline;">Ver mapa</a>`;
+      showToast("📍 ¡Ubicación GPS obtenida con éxito!");
+    },
+    (error) => {
+      gpsBtn.classList.remove("loading");
+      gpsBtnLabel.textContent = "Usar mi GPS";
+      statusBox.className = "gps-status error";
+
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          statusBox.textContent = "⚠️ Permiso de ubicación denegado. Podés escribir tu dirección a mano.";
+          break;
+        case error.POSITION_UNAVAILABLE:
+          statusBox.textContent = "⚠️ Señal de GPS no disponible en este momento. Escribí tu dirección manual.";
+          break;
+        case error.TIMEOUT:
+          statusBox.textContent = "⚠️ Tiempo de espera agotado al buscar GPS. Intentá de nuevo o escribí manual.";
+          break;
+        default:
+          statusBox.textContent = "⚠️ Error al obtener la ubicación.";
+      }
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    }
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Guardar Pedido en Historial Local (Para el Panel Dev / Admin)
+// -----------------------------------------------------------------------------
+function saveOrderToHistory(orderData) {
+  try {
+    const existingOrders = JSON.parse(localStorage.getItem("tienda_orders") || "[]");
+    existingOrders.unshift(orderData); // Añadir al inicio
+    localStorage.setItem("tienda_orders", JSON.stringify(existingOrders));
+  } catch (e) {
+    console.error("Error al guardar pedido en historial:", e);
+  }
+}
+
+// -----------------------------------------------------------------------------
 // Confirmación y Envío a WhatsApp
 // -----------------------------------------------------------------------------
 function submitOrderToWhatsApp() {
@@ -383,7 +486,7 @@ function submitOrderToWhatsApp() {
   const address = addressInput.value.trim();
   const notes = notesInput.value.trim();
 
-  // Validaciones básicas
+  // Validaciones
   if (!name) {
     alert("Por favor ingresá tu Nombre y Apellido.");
     nameInput.focus();
@@ -396,8 +499,8 @@ function submitOrderToWhatsApp() {
     return;
   }
 
-  if (deliveryMethod === "shipping" && !address) {
-    alert("Por favor ingresá tu dirección para el envío.");
+  if (deliveryMethod === "shipping" && !address && !currentGpsData) {
+    alert("Por favor ingresá tu dirección o presioná 'Usar mi GPS'.");
     addressInput.focus();
     return;
   }
@@ -410,29 +513,62 @@ function submitOrderToWhatsApp() {
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   let shippingCost = 0;
   if (deliveryMethod === "shipping") {
-    shippingCost = (STORE_CONFIG.freeDeliveryThreshold > 0 && subtotal >= STORE_CONFIG.freeDeliveryThreshold) ? 0 : STORE_CONFIG.deliveryCost;
+    shippingCost = (storeConfig.freeDeliveryThreshold > 0 && subtotal >= storeConfig.freeDeliveryThreshold) ? 0 : storeConfig.deliveryCost;
   }
   const total = subtotal + shippingCost;
 
   // Validación de pago en efectivo
   let cashNote = "";
+  let cashAmount = 0;
+  let cashChange = 0;
   if (paymentMethod === "cash") {
-    const cashVal = Number(document.getElementById("cash-amount-input").value);
-    if (cashVal > 0) {
-      if (cashVal < total) {
-        alert(`El monto en efectivo ingresado ($${cashVal}) es menor al total ($${total}).`);
+    cashAmount = Number(document.getElementById("cash-amount-input").value);
+    if (cashAmount > 0) {
+      if (cashAmount < total) {
+        alert(`El monto en efectivo ingresado ($${cashAmount.toLocaleString('es-AR')}) es menor al total ($${total.toLocaleString('es-AR')}).`);
         return;
       }
-      cashNote = ` (Paga con: $${cashVal.toLocaleString('es-AR')} | Vuelto: $${(cashVal - total).toLocaleString('es-AR')})`;
+      cashChange = cashAmount - total;
+      cashNote = ` (Paga con: $${cashAmount.toLocaleString('es-AR')} | Vuelto: $${cashChange.toLocaleString('es-AR')})`;
     } else {
-      cashNote = " (Abona con monto justo o coordinar cambio)";
+      cashNote = " (Abona monto exacto o coordinar cambio)";
     }
   }
 
-  // Generar ID de pedido aleatorio
   const orderId = Math.floor(1000 + Math.random() * 9000);
+  const now = new Date();
+  const dateFormatted = now.toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" });
 
-  // Armado del mensaje de WhatsApp estructurado y profesional
+  // Guardar en el historial local para el Panel Admin
+  const orderRecord = {
+    id: orderId,
+    date: dateFormatted,
+    timestamp: now.getTime(),
+    status: "Pendiente",
+    customer: {
+      name,
+      phone,
+      deliveryMethod,
+      address: deliveryMethod === "shipping" ? address : storeConfig.pickupAddress,
+      notes: notes || "Sin aclaraciones",
+      gps: currentGpsData ? {
+        lat: currentGpsData.lat,
+        lng: currentGpsData.lng,
+        mapUrl: currentGpsData.mapUrl
+      } : null
+    },
+    items: [...cart],
+    subtotal,
+    shippingCost,
+    total,
+    paymentMethod,
+    cashAmount,
+    cashChange
+  };
+
+  saveOrderToHistory(orderRecord);
+
+  // Armar el mensaje de WhatsApp
   let msg = `🛍️ *NUEVO PEDIDO #${orderId}*\n`;
   msg += `--------------------------------\n`;
   msg += `👤 *Cliente:* ${name}\n`;
@@ -440,9 +576,12 @@ function submitOrderToWhatsApp() {
   
   if (deliveryMethod === "shipping") {
     msg += `🛵 *Entrega:* A domicilio\n`;
-    msg += `📍 *Dirección:* ${address}\n`;
+    msg += `📍 *Dirección:* ${address || "Ver enlace GPS abajo"}\n`;
+    if (currentGpsData) {
+      msg += `🗺️ *Ubicación GPS:* ${currentGpsData.mapUrl}\n`;
+    }
   } else {
-    msg += `🏬 *Entrega:* Retiro en sucursal (${STORE_CONFIG.pickupAddress})\n`;
+    msg += `🏬 *Entrega:* Retiro en sucursal (${storeConfig.pickupAddress})\n`;
   }
 
   if (notes) {
@@ -469,16 +608,22 @@ function submitOrderToWhatsApp() {
   if (paymentMethod === "cash") {
     msg += `💳 *Forma de Pago:* Efectivo contra entrega${cashNote}\n`;
   } else {
-    msg += `💳 *Forma de Pago:* Transferencia Bancaria (Envío comprobante adjunto)\n`;
+    msg += `💳 *Forma de Pago:* Transferencia Bancaria (Adjunto comprobante)\n`;
   }
 
-  msg += `\n¡Hola! Acabo de hacer este pedido desde su web. ¿Me confirman si está todo bien? Gracias! 😊`;
+  msg += `\n¡Hola! Acabo de hacer este pedido desde la web. ¿Me confirman la recepción? ¡Muchas gracias!`;
 
-  // Construir link de WhatsApp
+  // Limpiar carrito tras confirmar
+  cart = [];
+  saveCartToStorage();
+  updateCartUI();
+  closeCartDrawer();
+
+  // Enviar al número configurado
   const encodedMsg = encodeURIComponent(msg);
-  const whatsappUrl = `https://wa.me/${STORE_CONFIG.whatsappNumber}?text=${encodedMsg}`;
+  const targetPhone = storeConfig.whatsappNumber || "5491123456789";
+  const whatsappUrl = `https://wa.me/${targetPhone}?text=${encodedMsg}`;
 
-  // Abrir WhatsApp en nueva pestaña
   window.open(whatsappUrl, "_blank");
 }
 
@@ -550,7 +695,7 @@ function setupEventListeners() {
     deliveryMethod = "shipping";
     shippingBtn.classList.add("active");
     pickupBtn.classList.remove("active");
-    shippingGroup.style.display = "block";
+    shippingGroup.style.display = "flex";
     pickupGroup.style.display = "none";
     updateCartUI();
   });
@@ -581,20 +726,26 @@ function setupEventListeners() {
     });
   });
 
+  // Botón GPS
+  const getGpsBtn = document.getElementById("get-gps-btn");
+  if (getGpsBtn) {
+    getGpsBtn.addEventListener("click", requestGpsLocation);
+  }
+
   // Cálculo en vivo de vuelto
   const cashAmountInput = document.getElementById("cash-amount-input");
   cashAmountInput.addEventListener("input", () => {
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const shipping = (deliveryMethod === "shipping" && (STORE_CONFIG.freeDeliveryThreshold === 0 || subtotal < STORE_CONFIG.freeDeliveryThreshold)) ? STORE_CONFIG.deliveryCost : 0;
+    const shipping = (deliveryMethod === "shipping" && (storeConfig.freeDeliveryThreshold === 0 || subtotal < storeConfig.freeDeliveryThreshold)) ? storeConfig.deliveryCost : 0;
     recalcCashChange(subtotal + shipping);
   });
 
   // Botón Copiar Alias
   document.getElementById("copy-alias-btn").addEventListener("click", () => {
-    navigator.clipboard.writeText(STORE_CONFIG.bankDetails.alias).then(() => {
+    navigator.clipboard.writeText(storeConfig.bankDetails.alias).then(() => {
       showToast("¡Alias copiado al portapapeles! 📋");
     }).catch(() => {
-      showToast("Alias: " + STORE_CONFIG.bankDetails.alias);
+      showToast("Alias: " + storeConfig.bankDetails.alias);
     });
   });
 

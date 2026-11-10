@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Mi Tienda Express | Pedí Online</title>
+  <title>Nexus Shop | Catálogo y Pedidos</title>
   
   <!-- OpenGraph / Redes Sociales (Instagram, WhatsApp, TikTok, Facebook) -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Mi Tienda Express | Pedí Online Fácil y Rápido">
-  <meta property="og:description" content="Mirá nuestro menú completo, elegí tus favoritos y pedí en 1 minuto con entrega a domicilio o retiro.">
-  <meta property="og:image" content="https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=1200&q=80">
+  <meta property="og:title" content="Nexus Shop | Catálogo de Productos y Pedidos Online">
+  <meta property="og:description" content="Descubrí nuestras novedades, elegí tus favoritos y hacé tu pedido en 1 minuto con entrega a domicilio o retiro.">
+  <meta property="og:image" content="https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=1200&q=80">
   <meta property="og:url" content="https://mitienda.vercel.app">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="theme-color" content="#111827">
+  <meta name="theme-color" content="#0f172a">
 
-  <!-- Fuente Inter de Google Fonts -->
+  <!-- Fuente Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -25,19 +25,19 @@
 
   <!-- Barra de Notificación / Promo -->
   <div id="promo-banner" class="promo-banner">
-    <span>✨ ¡Hacé tu pedido directo y pagá al recibir o por transferencia!</span>
+    <span>✨ ¡Hacé tu pedido directo! Envíos a domicilio con GPS y pago contra entrega o Alias</span>
   </div>
 
   <!-- Header Superior -->
   <header class="navbar">
     <div class="nav-container">
       <div class="brand-info">
-        <div class="brand-avatar">🏪</div>
+        <div class="brand-avatar">⚡</div>
         <div>
-          <h1 id="brand-name" class="brand-title">Mi Tienda Express</h1>
+          <h1 id="brand-name" class="brand-title">Nexus Shop</h1>
           <div class="store-status">
             <span class="status-dot"></span>
-            <span class="status-text">Abierto ahora • Tomando pedidos</span>
+            <span class="status-text">Abierto • Tomando pedidos</span>
           </div>
         </div>
       </div>
@@ -49,6 +49,10 @@
             <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
             <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
           </svg>
+        </a>
+
+        <a href="admin.html" class="dev-panel-link" title="Panel de Administración / Dev">
+          ⚙️ Admin
         </a>
         
         <button id="cart-btn" class="cart-trigger-btn" aria-label="Abrir carrito">
@@ -69,13 +73,13 @@
     <!-- Hero / Bienvenida -->
     <section class="hero-section">
       <div class="hero-card">
-        <h2 id="store-tagline" class="hero-title">Pedí online y recibilo en tu puerta 🚀</h2>
-        <p class="hero-subtitle">Elegí lo que más te guste, completá tus datos y enviá el pedido directamente a nuestro WhatsApp.</p>
+        <h2 id="store-tagline" class="hero-title">Tecnología, accesorios y tendencias a tu alcance ⚡</h2>
+        <p class="hero-subtitle">Elegí tus productos, autocompletá tu dirección con GPS y confirmá el pedido en segundos por WhatsApp.</p>
         
         <div class="hero-features">
-          <div class="feature-tag">🛵 <b>Envío a domicilio</b></div>
-          <div class="feature-tag">💵 <b>Efectivo al recibir</b></div>
-          <div class="feature-tag">📱 <b>Transferencia / Alias</b></div>
+          <div class="feature-tag">📍 <b>Ubicación GPS precisa</b></div>
+          <div class="feature-tag">💵 <b>Pago al recibir o Alias</b></div>
+          <div class="feature-tag">🚀 <b>Envíos express</b></div>
         </div>
       </div>
     </section>
@@ -87,7 +91,7 @@
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <input type="text" id="search-input" placeholder="Buscar hamburguesa, pizza, bebida..." autocomplete="off">
+        <input type="text" id="search-input" placeholder="Buscar producto, auricular, smartwatch, mochila..." autocomplete="off">
         <button id="clear-search-btn" class="clear-search-btn" style="display: none;">✕</button>
       </div>
     </section>
@@ -190,8 +194,8 @@
     <div id="cart-empty-view" class="drawer-empty-view" style="display: none;">
       <span class="drawer-empty-icon">🛒</span>
       <h4>Tu carrito está vacío</h4>
-      <p>Elegí productos del menú para comenzar a armar tu pedido.</p>
-      <button id="browse-menu-btn" class="secondary-btn">Ver menú</button>
+      <p>Elegí productos del catálogo para comenzar a armar tu pedido.</p>
+      <button id="browse-menu-btn" class="secondary-btn">Ver productos</button>
     </div>
 
     <!-- Footer del Carrito con Checkout -->
@@ -217,15 +221,24 @@
           <input type="text" id="customer-name" placeholder="Tu Nombre y Apellido *" class="form-control" required>
           <input type="tel" id="customer-phone" placeholder="Tu Teléfono / WhatsApp *" class="form-control" required>
           
-          <div id="shipping-address-group">
-            <input type="text" id="customer-address" placeholder="Dirección completa (Calle, Altura, Depto) *" class="form-control">
-          </div>
-          <div id="pickup-info-group" class="pickup-info-box" style="display: none;">
-            <span>📍 Dirección de retiro:</span>
-            <strong id="pickup-address-text">Av. Siempre Viva 742</strong>
+          <div id="shipping-address-group" class="shipping-address-group">
+            <div class="address-input-container">
+              <input type="text" id="customer-address" placeholder="Dirección completa (Calle, Altura, Depto) *" class="form-control">
+              <button type="button" id="get-gps-btn" class="gps-btn" title="Obtener mi ubicación actual con GPS">
+                <span class="gps-icon">📍</span>
+                <span id="gps-btn-label">Usar mi GPS</span>
+              </button>
+            </div>
+            
+            <div id="gps-status" class="gps-status" style="display: none;"></div>
           </div>
 
-          <textarea id="customer-notes" placeholder="Aclaraciones (Ej: Tocar timbre, sin mayonesa, etc.)" class="form-control form-textarea" rows="2"></textarea>
+          <div id="pickup-info-group" class="pickup-info-box" style="display: none;">
+            <span>📍 Dirección para retirar:</span>
+            <strong id="pickup-address-text">Av. Corrientes 1450 (Centro)</strong>
+          </div>
+
+          <textarea id="customer-notes" placeholder="Aclaraciones (Ej: Tocar timbre 4B, dejar en portería, etc.)" class="form-control form-textarea" rows="2"></textarea>
         </div>
       </div>
 
@@ -240,17 +253,17 @@
               <span class="payment-icon">💵</span>
               <div>
                 <strong>Efectivo al recibir</strong>
-                <p>Pagás en mano cuando llega tu pedido</p>
+                <p>Pagás en mano cuando llega tu paquete</p>
               </div>
             </div>
           </label>
 
           <!-- Input condicional para efectivo: con cuánto abona -->
           <div id="cash-change-box" class="cash-change-box">
-            <label for="cash-amount-input">¿Con cuánto vas a pagar? (Para llevarte cambio):</label>
+            <label for="cash-amount-input">¿Con cuánto vas a abonar? (Para llevarte cambio):</label>
             <div class="input-with-symbol">
               <span>$</span>
-              <input type="number" id="cash-amount-input" placeholder="Ej: 20000" class="form-control">
+              <input type="number" id="cash-amount-input" placeholder="Ej: 50000" class="form-control">
             </div>
             <span id="cash-change-result" class="change-hint"></span>
           </div>
@@ -261,7 +274,7 @@
               <span class="payment-icon">📱</span>
               <div>
                 <strong>Transferencia Bancaria / Alias</strong>
-                <p>Transferís y enviás comprobante</p>
+                <p>Transferís por Alias/CBU y mandás comprobante</p>
               </div>
             </div>
           </label>
@@ -272,10 +285,10 @@
               <span>💳 Datos para transferir:</span>
               <button type="button" id="copy-alias-btn" class="copy-btn">Copiar Alias</button>
             </div>
-            <p><strong>Banco/Billetera:</strong> <span id="bank-name">Mercado Pago</span></p>
-            <p><strong>Alias:</strong> <span id="bank-alias" class="highlight-code">MI.TIENDA.PAGOS</span></p>
-            <p><strong>Titular:</strong> <span id="bank-holder">Tu Nombre</span></p>
-            <small>⚠️ Envianos el comprobante por WhatsApp tras realizar el pedido.</small>
+            <p><strong>Banco:</strong> <span id="bank-name">Mercado Pago</span></p>
+            <p><strong>Alias:</strong> <span id="bank-alias" class="highlight-code">NEXUS.SHOP.PAGOS</span></p>
+            <p><strong>Titular:</strong> <span id="bank-holder">Nexus Shop SRL</span></p>
+            <small>⚠️ Adjuntanos la captura del comprobante en WhatsApp luego de enviar el pedido.</small>
           </div>
         </div>
       </div>
@@ -305,11 +318,21 @@
       </button>
 
       <p class="whatsapp-disclaimer">
-        Al presionar, se abrirá WhatsApp con el resumen de tu pedido listo para enviar.
+        Al presionar, se enviará el resumen completo con tu ubicación y pedido listo al WhatsApp oficial de la tienda.
       </p>
 
     </div>
   </aside>
+
+  <!-- Footer con enlace al panel Dev -->
+  <footer class="footer-bar">
+    <div class="footer-content">
+      <p>© <span id="year-copy"></span> <span id="footer-store-name">Nexus Shop</span> • Todos los derechos reservados.</p>
+      <a href="admin.html" class="admin-footer-btn">
+        <span>⚙️ Panel Dev & Pedidos</span>
+      </a>
+    </div>
+  </footer>
 
   <!-- Toast de Notificaciones -->
   <div id="toast" class="toast">Producto agregado al pedido ✨</div>
@@ -317,5 +340,8 @@
   <!-- Scripts -->
   <script src="config.js"></script>
   <script src="app.js"></script>
+  <script>
+    document.getElementById("year-copy").textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
