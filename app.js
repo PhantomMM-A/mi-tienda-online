@@ -160,10 +160,11 @@ function initHomepageMap() {
       attributionControl: false
     }).setView(defaultCoords, 13);
 
-    // Capa de mosaicos CARTO Voyager (rápida, moderna, sin bloqueos 403 y con soporte local)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      subdomains: 'abcd',
-      maxZoom: 20
+    // Capa de Google Maps (sin API key, ultra rápida, sin marcas de agua y con nombres claros de calles)
+    L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+      subdomains: ['0', '1', '2', '3'],
+      maxZoom: 20,
+      attribution: 'Google Maps'
     }).addTo(homepageMap);
 
     // Al hacer clic en cualquier parte del mapa, colocar o mover el pin
