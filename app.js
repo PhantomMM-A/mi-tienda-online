@@ -160,8 +160,10 @@ function initHomepageMap() {
       attributionControl: false
     }).setView(defaultCoords, 13);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19
+    // Capa de mosaicos CARTO Voyager (rápida, moderna, sin bloqueos 403 y con soporte local)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      subdomains: 'abcd',
+      maxZoom: 20
     }).addTo(homepageMap);
 
     // Al hacer clic en cualquier parte del mapa, colocar o mover el pin

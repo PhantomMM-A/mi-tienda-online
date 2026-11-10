@@ -964,7 +964,10 @@
                 attributionControl: false
               }).setView([order.customer.gps.lat, order.customer.gps.lng], 16);
 
-              L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap);
+              L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                subdomains: 'abcd',
+                maxZoom: 20
+              }).addTo(miniMap);
               L.marker([order.customer.gps.lat, order.customer.gps.lng]).addTo(miniMap);
 
               adminMaps[order.id] = miniMap;
