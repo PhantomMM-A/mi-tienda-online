@@ -9,6 +9,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
+  <!-- Leaflet para ver mapas GPS interactivos en el panel de pedidos -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
   <style>
     :root {
       --primary: #10b981;
@@ -353,6 +356,15 @@
       margin-bottom: 6px;
     }
 
+    .admin-mini-map {
+      height: 180px;
+      width: 100%;
+      border-radius: 8px;
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      z-index: 1;
+    }
+
     .maps-link-btn {
       display: inline-flex;
       align-items: center;
@@ -360,11 +372,12 @@
       background: #0284c7;
       color: white;
       text-decoration: none;
-      padding: 6px 12px;
+      padding: 7px 14px;
       border-radius: 6px;
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       font-weight: 700;
       margin-top: 8px;
+      transition: background 0.2s;
     }
 
     .maps-link-btn:hover {
@@ -504,7 +517,7 @@
         <div class="header-avatar">⚙️</div>
         <div class="header-title">
           <h1>Panel Dev & Administración</h1>
-          <p>Configurá tu número de WhatsApp, gestioná productos y revisá pedidos con GPS</p>
+          <p>Configurá tu número de WhatsApp, gestioná productos y revisá pedidos con GPS en vivo</p>
         </div>
       </div>
       <a href="index.html" class="view-store-btn" target="_blank">
@@ -515,7 +528,7 @@
     <!-- Navegación por pestañas -->
     <nav class="tabs-nav">
       <button class="tab-btn active" onclick="switchTab('orders-tab')">
-        📦 Pedidos y Ubicaciones <span id="orders-badge-count" class="tab-badge">0</span>
+        📦 Pedidos y Ubicaciones GPS <span id="orders-badge-count" class="tab-badge">0</span>
       </button>
       <button class="tab-btn" onclick="switchTab('settings-tab')">
         📱 Número de WhatsApp y Configuración
@@ -525,13 +538,13 @@
       </button>
     </nav>
 
-    <!-- TAB 1: PEDIDOS RECIBIDOS & UBICACIONES GPS -->
+    <!-- TAB 1: PEDIDOS RECIBIDOS & MAPAS GPS -->
     <section id="orders-tab" class="tab-content active">
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
           <div>
-            <h2 class="card-title">📦 Historial de Pedidos Recibidos</h2>
-            <p class="card-subtitle" style="margin-bottom: 0;">Los pedidos que los clientes confirman quedan guardados acá con su ubicación GPS y detalle.</p>
+            <h2 class="card-title">📦 Historial de Pedidos y Mapas de Entrega</h2>
+            <p class="card-subtitle" style="margin-bottom: 0;">Revisá los pedidos recibidos con su mapa interactivo satelital y botón para navegar con Google Maps.</p>
           </div>
           <button class="btn btn-danger" onclick="clearAllOrders()">🗑️ Borrar Historial</button>
         </div>
@@ -543,7 +556,7 @@
         <div id="empty-orders-view" class="empty-orders" style="display: none;">
           <span>📭</span>
           <h3>Aún no hay pedidos registrados</h3>
-          <p>Cuando un cliente confirme un pedido desde la tienda web, aparecerá aquí automáticamente con su GPS y detalle.</p>
+          <p>Cuando un cliente confirme un pedido desde la tienda web, aparecerá aquí automáticamente con su mapa GPS y detalle.</p>
         </div>
       </div>
     </section>
@@ -734,6 +747,9 @@
 
   <div id="admin-toast" class="admin-toast">Configuración guardada correctamente ✨</div>
 
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
   <script src="config.js"></script>
   <script>
     // =========================================================================
@@ -742,6 +758,7 @@
 
     let currentConfig = getActiveStoreConfig();
     let currentProducts = getActiveProducts();
+    let adminMaps = {}; // Mapa para almacenar instancias Leaflet de pedidos
 
     document.addEventListener("DOMContentLoaded", () => {
       loadSettingsToForm();
@@ -760,6 +777,13 @@
         btn.getAttribute("onclick").includes(tabId)
       );
       if (activeBtn) activeBtn.classList.add("active");
+
+      // Si abre pedidos, refrescar los mapas
+      if (tabId === "orders-tab") {
+        setTimeout(() => {
+          Object.values(adminMaps).forEach(m => m.invalidateSize());
+        }, 200);
+      }
     }
 
     // Toast feedback
@@ -793,7 +817,7 @@
     function saveStoreSettings(e) {
       e.preventDefault();
 
-      let whatsapp = document.getElementById("cfg-whatsapp").value.trim().replace(/\D/g, ""); // Solo dígitos
+      let whatsapp = document.getElementById("cfg-whatsapp").value.trim().replace(/\D/g, "");
       if (!whatsapp) {
         alert("Por favor ingresá un número de WhatsApp válido.");
         return;
@@ -822,7 +846,7 @@
     }
 
     // -------------------------------------------------------------------------
-    // SECCIÓN 2: HISTORIAL DE PEDIDOS CON GPS
+    // SECCIÓN 2: HISTORIAL DE PEDIDOS CON GPS INTERACTIVO
     // -------------------------------------------------------------------------
     function renderOrders() {
       const container = document.getElementById("orders-container");
@@ -845,17 +869,18 @@
       }
 
       emptyView.style.display = "none";
-      container.innerHTML = orders.map((order, idx) => {
+      container.innerHTML = orders.map((order) => {
         const isShipping = order.customer.deliveryMethod === "shipping";
         const statusClass = `status-${(order.status || 'pendiente').toLowerCase().replace(/\s+/g, '-')}`;
 
         let gpsHtml = "";
         if (order.customer.gps && order.customer.gps.mapUrl) {
           gpsHtml = `
-            <div style="margin-top: 8px;">
-              <span style="font-size: 0.8rem; color: #38bdf8;">📍 Coordenadas: ${order.customer.gps.lat.toFixed(5)}, ${order.customer.gps.lng.toFixed(5)}</span><br>
+            <div style="margin-top: 10px;">
+              <span style="font-size: 0.8rem; color: #38bdf8;">📍 Coordenadas: ${order.customer.gps.lat.toFixed(5)}, ${order.customer.gps.lng.toFixed(5)}</span>
+              <div id="admin-map-${order.id}" class="admin-mini-map"></div>
               <a href="${order.customer.gps.mapUrl}" target="_blank" class="maps-link-btn">
-                🗺️ Abrir en Google Maps / Waze
+                🗺️ Abrir en Google Maps / Waze para Navegar ↗
               </a>
             </div>
           `;
@@ -882,7 +907,7 @@
                 <p>🛵 <b>Entrega:</b> ${isShipping ? 'A domicilio' : 'Retiro en sucursal'}</p>
                 <p>📍 <b>Dirección:</b> ${order.customer.address}</p>
                 ${gpsHtml}
-                <p style="margin-top: 6px;">📝 <b>Notas:</b> <i>${order.customer.notes}</i></p>
+                <p style="margin-top: 8px;">📝 <b>Notas:</b> <i>${order.customer.notes}</i></p>
               </div>
 
               <div class="order-items-box">
@@ -928,6 +953,25 @@
           </div>
         `;
       }).join('');
+
+      // Inicializar minimapas Leaflet para cada pedido con GPS
+      setTimeout(() => {
+        orders.forEach(order => {
+          if (order.customer.gps && document.getElementById(`admin-map-${order.id}`)) {
+            if (!adminMaps[order.id]) {
+              const miniMap = L.map(`admin-map-${order.id}`, {
+                zoomControl: false,
+                attributionControl: false
+              }).setView([order.customer.gps.lat, order.customer.gps.lng], 16);
+
+              L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap);
+              L.marker([order.customer.gps.lat, order.customer.gps.lng]).addTo(miniMap);
+
+              adminMaps[order.id] = miniMap;
+            }
+          }
+        });
+      }, 150);
     }
 
     function updateOrderStatus(orderId, newStatus) {
@@ -946,6 +990,7 @@
         let orders = JSON.parse(localStorage.getItem("tienda_orders") || "[]");
         orders = orders.filter(o => o.id !== orderId);
         localStorage.setItem("tienda_orders", JSON.stringify(orders));
+        if (adminMaps[orderId]) delete adminMaps[orderId];
         renderOrders();
         showAdminToast("Pedido eliminado.");
       }
@@ -954,6 +999,7 @@
     function clearAllOrders() {
       if (confirm("¿Estás seguro de vaciar TODO el historial de pedidos?")) {
         localStorage.removeItem("tienda_orders");
+        adminMaps = {};
         renderOrders();
         showAdminToast("Historial vaciado.");
       }
@@ -1027,7 +1073,6 @@
       let products = getActiveProducts();
 
       if (editId) {
-        // Editar existente
         const idx = products.findIndex(p => p.id === editId);
         if (idx !== -1) {
           products[idx] = {
@@ -1043,7 +1088,6 @@
           showAdminToast(`¡Producto "${name}" actualizado!`);
         }
       } else {
-        // Nuevo producto
         const newProd = {
           id: "prod-" + Date.now(),
           name,
@@ -1085,7 +1129,6 @@
       document.getElementById("prod-submit-btn").textContent = "💾 Guardar Cambios";
       document.getElementById("prod-cancel-btn").style.display = "inline-flex";
 
-      // Scroll hasta el formulario
       document.getElementById("product-form-title").scrollIntoView({ behavior: 'smooth' });
     }
 

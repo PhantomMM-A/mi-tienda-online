@@ -1,5 +1,5 @@
 // =============================================================================
-// LÓGICA PRINCIPAL (CARRITO, BÚSQUEDA, GPS Y ENVÍO A WHATSAPP)
+// LÓGICA PRINCIPAL (CARRITO, BÚSQUEDA, MAPA INTERACTIVO CON GPS Y WHATSAPP)
 // =============================================================================
 
 let storeConfig = getActiveStoreConfig();
@@ -11,11 +11,15 @@ let cart = [];
 let deliveryMethod = "shipping"; // 'shipping' o 'pickup'
 let modalSelectedProduct = null;
 let modalQuantity = 1;
-let currentGpsData = null; // Almacenará latitud, longitud y link de Google Maps
+
+// Variables del Mapa Leaflet y GPS
+let deliveryMap = null;
+let deliveryMarker = null;
+let accuracyCircle = null;
+let currentGpsData = null; // { lat, lng, accuracy, mapUrl, address }
 
 // Inicialización cuando carga el DOM
 document.addEventListener("DOMContentLoaded", () => {
-  // Recargar config y productos actualizados
   storeConfig = getActiveStoreConfig();
   storeProducts = getActiveProducts();
 
@@ -96,14 +100,12 @@ function renderProducts() {
 
   let filtered = storeProducts;
 
-  // Filtro por categoría
   if (currentCategory === "destacados") {
     filtered = filtered.filter(p => p.featured);
   } else if (currentCategory !== "all") {
     filtered = filtered.filter(p => p.category === currentCategory);
   }
 
-  // Filtro por búsqueda
   if (searchQuery.trim() !== "") {
     const query = searchQuery.toLowerCase().trim();
     filtered = filtered.filter(p => 
@@ -245,7 +247,6 @@ function updateCartUI() {
   const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-  // Costo de envío
   let shippingCost = 0;
   if (deliveryMethod === "shipping") {
     if (storeConfig.freeDeliveryThreshold > 0 && subtotal >= storeConfig.freeDeliveryThreshold) {
@@ -336,12 +337,17 @@ function recalcCashChange(total) {
 }
 
 // -----------------------------------------------------------------------------
-// Drawer Abrir / Cerrar
+// Drawer Abrir / Cerrar & Ajuste del Mapa Leaflet
 // -----------------------------------------------------------------------------
 function openCartDrawer() {
   document.getElementById("cart-drawer").classList.add("open");
   document.getElementById("cart-drawer-overlay").style.display = "block";
   document.body.style.overflow = "hidden";
+
+  // Inicializar o refrescar el tamaño del mapa cuando se abre el carrito
+  setTimeout(() => {
+    initOrUpdateDeliveryMap();
+  }, 350);
 }
 
 function closeCartDrawer() {
@@ -351,104 +357,178 @@ function closeCartDrawer() {
 }
 
 // -----------------------------------------------------------------------------
-// Notificaciones Toast
+// MAPA INTERACTIVO LEAFLET Y ACTIVACIÓN DE GPS
 // -----------------------------------------------------------------------------
-let toastTimer = null;
-function showToast(message) {
-  const toast = document.getElementById("toast");
-  toast.textContent = message;
-  toast.classList.add("show");
+function initOrUpdateDeliveryMap() {
+  const mapElement = document.getElementById("delivery-map");
+  if (!mapElement) return;
 
-  if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    toast.classList.remove("show");
-  }, 2500);
+  // Si aún no está creado el mapa
+  if (!deliveryMap && typeof L !== "undefined") {
+    // Vista por defecto: centro aproximado
+    const defaultCoords = [-34.6037, -58.3816];
+    deliveryMap = L.map('delivery-map', {
+      zoomControl: true,
+      attributionControl: false
+    }).setView(defaultCoords, 13);
+
+    // Capa de mosaicos de OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19
+    }).addTo(deliveryMap);
+
+    // Permitir hacer clic en cualquier parte del mapa para fijar / mover el pin
+    deliveryMap.on('click', (e) => {
+      setMapPinLocation(e.latlng.lat, e.latlng.lng, true);
+    });
+  }
+
+  if (deliveryMap) {
+    deliveryMap.invalidateSize();
+  }
 }
 
-// -----------------------------------------------------------------------------
-// API DE GEOLOCALIZACIÓN Y GPS
-// -----------------------------------------------------------------------------
-function requestGpsLocation() {
-  const gpsBtn = document.getElementById("get-gps-btn");
-  const gpsBtnLabel = document.getElementById("gps-btn-label");
-  const statusBox = document.getElementById("gps-status");
+function setMapPinLocation(lat, lng, fetchAddress = true, accuracy = null) {
+  if (!deliveryMap) return;
+
+  const mapUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+  currentGpsData = { lat, lng, accuracy, mapUrl };
+
+  // Ocultar overlay
+  const overlay = document.getElementById("map-overlay-prompt");
+  if (overlay) overlay.style.display = "none";
+
+  // Si ya existía el marcador, moverlo
+  if (deliveryMarker) {
+    deliveryMarker.setLatLng([lat, lng]);
+  } else {
+    // Crear marcador arrastrable
+    deliveryMarker = L.marker([lat, lng], { draggable: true }).addTo(deliveryMap);
+    
+    // Al terminar de arrastrar el pin
+    deliveryMarker.on('dragend', function (event) {
+      const position = event.target.getLatLng();
+      setMapPinLocation(position.lat, position.lng, true);
+    });
+  }
+
+  deliveryMarker.bindPopup("<b>📍 Tu punto de entrega</b><br>Arrastrá el pin para afinar el punto exacto").openPopup();
+
+  // Círculo de precisión
+  if (accuracyCircle) {
+    deliveryMap.removeLayer(accuracyCircle);
+    accuracyCircle = null;
+  }
+  if (accuracy && accuracy < 500) {
+    accuracyCircle = L.circle([lat, lng], {
+      color: '#3b82f6',
+      fillColor: '#60a5fa',
+      fillOpacity: 0.15,
+      radius: accuracy
+    }).addTo(deliveryMap);
+  }
+
+  // Centrar suavemente
+  deliveryMap.setView([lat, lng], 17);
+
+  // Actualizar estado en pantalla
+  const statusBox = document.getElementById("gps-status-info");
+  statusBox.className = "gps-status-info";
+  statusBox.style.display = "block";
+  statusBox.innerHTML = `
+    ✅ <b>Punto fijado en el mapa</b> (${lat.toFixed(5)}, ${lng.toFixed(5)})
+    ${accuracy ? `• Margen satelital: ~${accuracy}m` : ''}<br>
+    <small>💡 Podés <b>arrastrar el pin</b> o hacer clic en el mapa para afinar la entrada exacta.</small>
+  `;
+
+  // Geocodificación inversa
+  if (fetchAddress) {
+    reverseGeocode(lat, lng);
+  }
+}
+
+async function reverseGeocode(lat, lng) {
   const addressInput = document.getElementById("customer-address");
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`, {
+      headers: { 'Accept-Language': 'es' }
+    });
+    const data = await res.json();
+    if (data && data.address) {
+      const street = data.address.road || data.address.pedestrian || "";
+      const number = data.address.house_number || "";
+      const neighbourhood = data.address.suburb || data.address.neighbourhood || data.address.city_district || "";
+      const city = data.address.city || data.address.town || "";
+
+      let formatted = [street, number].filter(Boolean).join(" ");
+      if (neighbourhood) formatted += `, ${neighbourhood}`;
+      if (city) formatted += ` (${city})`;
+
+      if (formatted.trim() !== "") {
+        addressInput.value = formatted;
+        if (currentGpsData) currentGpsData.address = formatted;
+      }
+    }
+  } catch (err) {
+    console.warn("Geocodificación inversa no completada:", err);
+  }
+}
+
+// Función para activar el GPS satelital del navegador
+function requestGpsLocation() {
+  const activateBtn = document.getElementById("activate-gps-btn");
+  const gpsBtnLabel = document.getElementById("gps-btn-label");
+  const statusBox = document.getElementById("gps-status-info");
 
   if (!navigator.geolocation) {
     statusBox.textContent = "Tu navegador no soporta geolocalización GPS.";
-    statusBox.className = "gps-status error";
+    statusBox.className = "gps-status-info error";
     statusBox.style.display = "block";
     return;
   }
 
-  gpsBtn.classList.add("loading");
+  activateBtn.classList.add("loading");
   gpsBtnLabel.textContent = "Buscando GPS...";
-  statusBox.textContent = "🛰️ Conectando con satélites GPS... Por favor aceptá el permiso de ubicación.";
-  statusBox.className = "gps-status";
+  statusBox.textContent = "🛰️ Conectando con satélites GPS... Aceptá el permiso de ubicación en tu pantalla.";
+  statusBox.className = "gps-status-info";
   statusBox.style.display = "block";
 
+  initOrUpdateDeliveryMap();
+
   navigator.geolocation.getCurrentPosition(
-    async (position) => {
+    (position) => {
       const lat = position.coords.latitude;
       const lng = position.coords.longitude;
       const accuracy = Math.round(position.coords.accuracy);
 
-      const mapUrl = `https://www.google.com/maps?q=${lat},${lng}`;
-      currentGpsData = { lat, lng, accuracy, mapUrl };
+      activateBtn.classList.remove("loading");
+      gpsBtnLabel.textContent = "✓ GPS Activo";
 
-      gpsBtn.classList.remove("loading");
-      gpsBtnLabel.textContent = "✓ GPS Listo";
-
-      // Intentar obtener dirección textual por OpenStreetMap Nominatim
-      try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`, {
-          headers: { 'Accept-Language': 'es' }
-        });
-        const data = await response.json();
-        if (data && data.address) {
-          const street = data.address.road || data.address.pedestrian || "";
-          const number = data.address.house_number || "";
-          const neighbourhood = data.address.suburb || data.address.neighbourhood || data.address.city_district || "";
-          const city = data.address.city || data.address.town || "";
-          
-          let formattedAddr = [street, number].filter(Boolean).join(" ");
-          if (neighbourhood) formattedAddr += `, ${neighbourhood}`;
-          if (city) formattedAddr += ` (${city})`;
-
-          if (formattedAddr.trim() !== "") {
-            addressInput.value = formattedAddr;
-          }
-        }
-      } catch (err) {
-        console.warn("No se pudo resolver la dirección textual por geocodificación inversa:", err);
-      }
-
-      statusBox.className = "gps-status";
-      statusBox.innerHTML = `✅ <b>Ubicación GPS capturada</b> (Margen: ~${accuracy}m) • <a href="${mapUrl}" target="_blank" style="color: #2563eb; text-decoration: underline;">Ver mapa</a>`;
-      showToast("📍 ¡Ubicación GPS obtenida con éxito!");
+      setMapPinLocation(lat, lng, true, accuracy);
+      showToast("📍 ¡GPS activado y ubicado en el mapa!");
     },
     (error) => {
-      gpsBtn.classList.remove("loading");
-      gpsBtnLabel.textContent = "Usar mi GPS";
-      statusBox.className = "gps-status error";
+      activateBtn.classList.remove("loading");
+      gpsBtnLabel.textContent = "Activar mi GPS";
+      statusBox.className = "gps-status-info error";
 
       switch (error.code) {
         case error.PERMISSION_DENIED:
-          statusBox.textContent = "⚠️ Permiso de ubicación denegado. Podés escribir tu dirección a mano.";
+          statusBox.textContent = "⚠️ Permiso de GPS denegado. Podés hacer clic en el mapa para marcar tu casa o escribir la dirección.";
           break;
         case error.POSITION_UNAVAILABLE:
-          statusBox.textContent = "⚠️ Señal de GPS no disponible en este momento. Escribí tu dirección manual.";
+          statusBox.textContent = "⚠️ Señal de GPS no disponible en este momento. Podés marcar tu ubicación haciendo clic en el mapa.";
           break;
         case error.TIMEOUT:
-          statusBox.textContent = "⚠️ Tiempo de espera agotado al buscar GPS. Intentá de nuevo o escribí manual.";
+          statusBox.textContent = "⚠️ Tiempo de espera GPS agotado. Intentá de nuevo o tocá en el mapa para marcar.";
           break;
         default:
-          statusBox.textContent = "⚠️ Error al obtener la ubicación.";
+          statusBox.textContent = "⚠️ Error al activar el GPS.";
       }
     },
     {
       enableHighAccuracy: true,
-      timeout: 10000,
+      timeout: 12000,
       maximumAge: 0
     }
   );
@@ -460,7 +540,7 @@ function requestGpsLocation() {
 function saveOrderToHistory(orderData) {
   try {
     const existingOrders = JSON.parse(localStorage.getItem("tienda_orders") || "[]");
-    existingOrders.unshift(orderData); // Añadir al inicio
+    existingOrders.unshift(orderData);
     localStorage.setItem("tienda_orders", JSON.stringify(existingOrders));
   } catch (e) {
     console.error("Error al guardar pedido en historial:", e);
@@ -500,8 +580,7 @@ function submitOrderToWhatsApp() {
   }
 
   if (deliveryMethod === "shipping" && !address && !currentGpsData) {
-    alert("Por favor ingresá tu dirección o presioná 'Usar mi GPS'.");
-    addressInput.focus();
+    alert("Por favor tocá 'Activar mi GPS' en el mapa o ingresá tu dirección.");
     return;
   }
 
@@ -549,11 +628,12 @@ function submitOrderToWhatsApp() {
       name,
       phone,
       deliveryMethod,
-      address: deliveryMethod === "shipping" ? address : storeConfig.pickupAddress,
+      address: deliveryMethod === "shipping" ? (address || "Ubicación fijada en mapa GPS") : storeConfig.pickupAddress,
       notes: notes || "Sin aclaraciones",
       gps: currentGpsData ? {
         lat: currentGpsData.lat,
         lng: currentGpsData.lng,
+        accuracy: currentGpsData.accuracy,
         mapUrl: currentGpsData.mapUrl
       } : null
     },
@@ -576,9 +656,9 @@ function submitOrderToWhatsApp() {
   
   if (deliveryMethod === "shipping") {
     msg += `🛵 *Entrega:* A domicilio\n`;
-    msg += `📍 *Dirección:* ${address || "Ver enlace GPS abajo"}\n`;
+    msg += `📍 *Dirección:* ${address || "Ver enlace en mapa GPS abajo"}\n`;
     if (currentGpsData) {
-      msg += `🗺️ *Ubicación GPS:* ${currentGpsData.mapUrl}\n`;
+      msg += `🗺️ *Ubicación GPS en vivo:* ${currentGpsData.mapUrl}\n`;
     }
   } else {
     msg += `🏬 *Entrega:* Retiro en sucursal (${storeConfig.pickupAddress})\n`;
@@ -611,7 +691,7 @@ function submitOrderToWhatsApp() {
     msg += `💳 *Forma de Pago:* Transferencia Bancaria (Adjunto comprobante)\n`;
   }
 
-  msg += `\n¡Hola! Acabo de hacer este pedido desde la web. ¿Me confirman la recepción? ¡Muchas gracias!`;
+  msg += `\n¡Hola! Acabo de hacer este pedido con ubicación GPS desde la tienda. ¿Me confirman la recepción? ¡Gracias!`;
 
   // Limpiar carrito tras confirmar
   cart = [];
@@ -625,6 +705,21 @@ function submitOrderToWhatsApp() {
   const whatsappUrl = `https://wa.me/${targetPhone}?text=${encodedMsg}`;
 
   window.open(whatsappUrl, "_blank");
+}
+
+// -----------------------------------------------------------------------------
+// Notificaciones Toast
+// -----------------------------------------------------------------------------
+let toastTimer = null;
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2500);
 }
 
 // -----------------------------------------------------------------------------
@@ -698,6 +793,7 @@ function setupEventListeners() {
     shippingGroup.style.display = "flex";
     pickupGroup.style.display = "none";
     updateCartUI();
+    setTimeout(() => initOrUpdateDeliveryMap(), 200);
   });
 
   pickupBtn.addEventListener("click", () => {
@@ -726,10 +822,10 @@ function setupEventListeners() {
     });
   });
 
-  // Botón GPS
-  const getGpsBtn = document.getElementById("get-gps-btn");
-  if (getGpsBtn) {
-    getGpsBtn.addEventListener("click", requestGpsLocation);
+  // Botón Activar GPS
+  const activateGpsBtn = document.getElementById("activate-gps-btn");
+  if (activateGpsBtn) {
+    activateGpsBtn.addEventListener("click", requestGpsLocation);
   }
 
   // Cálculo en vivo de vuelto

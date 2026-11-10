@@ -19,13 +19,16 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
+  <!-- Leaflet CSS para Mapa Interactivo GPS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
   <!-- Barra de Notificación / Promo -->
   <div id="promo-banner" class="promo-banner">
-    <span>✨ ¡Hacé tu pedido directo! Envíos a domicilio con GPS y pago contra entrega o Alias</span>
+    <span>✨ ¡Hacé tu pedido directo! Mapa con GPS en vivo y pago al recibir o por Alias</span>
   </div>
 
   <!-- Header Superior -->
@@ -74,10 +77,10 @@
     <section class="hero-section">
       <div class="hero-card">
         <h2 id="store-tagline" class="hero-title">Tecnología, accesorios y tendencias a tu alcance ⚡</h2>
-        <p class="hero-subtitle">Elegí tus productos, autocompletá tu dirección con GPS y confirmá el pedido en segundos por WhatsApp.</p>
+        <p class="hero-subtitle">Elegí tus productos, fijá tu punto de entrega en el mapa con GPS y confirmá tu pedido en segundos por WhatsApp.</p>
         
         <div class="hero-features">
-          <div class="feature-tag">📍 <b>Ubicación GPS precisa</b></div>
+          <div class="feature-tag">🗺️ <b>Mapa GPS en tiempo real</b></div>
           <div class="feature-tag">💵 <b>Pago al recibir o Alias</b></div>
           <div class="feature-tag">🚀 <b>Envíos express</b></div>
         </div>
@@ -91,7 +94,7 @@
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <input type="text" id="search-input" placeholder="Buscar producto, auricular, smartwatch, mochila..." autocomplete="off">
+        <input type="text" id="search-input" placeholder="Buscar producto, auricular, smartwatch, cargador..." autocomplete="off">
         <button id="clear-search-btn" class="clear-search-btn" style="display: none;">✕</button>
       </div>
     </section>
@@ -214,23 +217,51 @@
         </div>
       </div>
 
-      <!-- Paso 2: Datos del Cliente -->
+      <!-- Paso 2: Datos del Cliente y Mapa GPS -->
       <div class="checkout-block">
         <label class="block-label">Tus Datos para el Pedido:</label>
         <div class="form-inputs">
           <input type="text" id="customer-name" placeholder="Tu Nombre y Apellido *" class="form-control" required>
           <input type="tel" id="customer-phone" placeholder="Tu Teléfono / WhatsApp *" class="form-control" required>
           
+          <!-- SECCIÓN DE UBICACIÓN Y MAPA INTERACTIVO CON GPS -->
           <div id="shipping-address-group" class="shipping-address-group">
+            
+            <div class="map-gps-card">
+              <div class="map-gps-header">
+                <div>
+                  <strong class="map-header-title">📍 Ubicación de Entrega en el Mapa</strong>
+                  <span class="map-header-sub">Tocá el botón para activar tu GPS satelital</span>
+                </div>
+                <button type="button" id="activate-gps-btn" class="activate-gps-btn" title="Activar mi GPS satelital en el mapa">
+                  <span class="gps-pulse-dot"></span>
+                  <span id="gps-btn-label">Activar mi GPS</span>
+                </button>
+              </div>
+
+              <!-- Contenedor del Mapa Leaflet -->
+              <div class="interactive-map-box">
+                <div id="delivery-map" class="delivery-map"></div>
+                
+                <!-- Prompt sobre el mapa antes de activar GPS -->
+                <div id="map-overlay-prompt" class="map-overlay-prompt">
+                  <div class="map-overlay-content" onclick="requestGpsLocation()">
+                    <span class="overlay-icon">🎯</span>
+                    <strong>Tocar acá para activar tu GPS</strong>
+                    <small>Ubicará tu casa en el mapa automáticamente</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Estado de precisión y ayuda del GPS -->
+              <div id="gps-status-info" class="gps-status-info" style="display: none;"></div>
+            </div>
+
+            <!-- Input de Dirección autocompletada o manual -->
             <div class="address-input-container">
-              <input type="text" id="customer-address" placeholder="Dirección completa (Calle, Altura, Depto) *" class="form-control">
-              <button type="button" id="get-gps-btn" class="gps-btn" title="Obtener mi ubicación actual con GPS">
-                <span class="gps-icon">📍</span>
-                <span id="gps-btn-label">Usar mi GPS</span>
-              </button>
+              <input type="text" id="customer-address" placeholder="Dirección (detectada por GPS o manual: Calle, N°, Depto) *" class="form-control">
             </div>
             
-            <div id="gps-status" class="gps-status" style="display: none;"></div>
           </div>
 
           <div id="pickup-info-group" class="pickup-info-box" style="display: none;">
@@ -238,7 +269,7 @@
             <strong id="pickup-address-text">Av. Corrientes 1450 (Centro)</strong>
           </div>
 
-          <textarea id="customer-notes" placeholder="Aclaraciones (Ej: Tocar timbre 4B, dejar en portería, etc.)" class="form-control form-textarea" rows="2"></textarea>
+          <textarea id="customer-notes" placeholder="Aclaraciones (Ej: Tocar timbre 4B, casa de rejas blancas, etc.)" class="form-control form-textarea" rows="2"></textarea>
         </div>
       </div>
 
@@ -318,7 +349,7 @@
       </button>
 
       <p class="whatsapp-disclaimer">
-        Al presionar, se enviará el resumen completo con tu ubicación y pedido listo al WhatsApp oficial de la tienda.
+        Al presionar, se enviará el resumen completo con tu ubicación satelital fija y pedido listo al WhatsApp de la tienda.
       </p>
 
     </div>
@@ -337,7 +368,10 @@
   <!-- Toast de Notificaciones -->
   <div id="toast" class="toast">Producto agregado al pedido ✨</div>
 
-  <!-- Scripts -->
+  <!-- Leaflet JS para Mapa Interactivo -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Scripts de la Tienda -->
   <script src="config.js"></script>
   <script src="app.js"></script>
   <script>
