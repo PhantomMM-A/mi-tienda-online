@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mi Tienda Express | Pedí Online</title>
+  
+  <!-- OpenGraph / Redes Sociales (Instagram, WhatsApp, TikTok, Facebook) -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Mi Tienda Express | Pedí Online Fácil y Rápido">
+  <meta property="og:description" content="Mirá nuestro menú completo, elegí tus favoritos y pedí en 1 minuto con entrega a domicilio o retiro.">
+  <meta property="og:image" content="https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=1200&q=80">
+  <meta property="og:url" content="https://mitienda.vercel.app">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#111827">
+
+  <!-- Fuente Inter de Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Barra de Notificación / Promo -->
+  <div id="promo-banner" class="promo-banner">
+    <span>✨ ¡Hacé tu pedido directo y pagá al recibir o por transferencia!</span>
+  </div>
+
+  <!-- Header Superior -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand-info">
+        <div class="brand-avatar">🏪</div>
+        <div>
+          <h1 id="brand-name" class="brand-title">Mi Tienda Express</h1>
+          <div class="store-status">
+            <span class="status-dot"></span>
+            <span class="status-text">Abierto ahora • Tomando pedidos</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <a id="instagram-link" href="#" target="_blank" rel="noopener noreferrer" class="social-btn" title="Instagram">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+        </a>
+        
+        <button id="cart-btn" class="cart-trigger-btn" aria-label="Abrir carrito">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="21" r="1"></circle>
+            <circle cx="20" cy="21" r="1"></circle>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+          </svg>
+          <span id="cart-count-badge" class="badge">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenedor Principal -->
+  <main class="main-content">
+    
+    <!-- Hero / Bienvenida -->
+    <section class="hero-section">
+      <div class="hero-card">
+        <h2 id="store-tagline" class="hero-title">Pedí online y recibilo en tu puerta 🚀</h2>
+        <p class="hero-subtitle">Elegí lo que más te guste, completá tus datos y enviá el pedido directamente a nuestro WhatsApp.</p>
+        
+        <div class="hero-features">
+          <div class="feature-tag">🛵 <b>Envío a domicilio</b></div>
+          <div class="feature-tag">💵 <b>Efectivo al recibir</b></div>
+          <div class="feature-tag">📱 <b>Transferencia / Alias</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Barra de Búsqueda -->
+    <section class="search-section">
+      <div class="search-box">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="search-input" placeholder="Buscar hamburguesa, pizza, bebida..." autocomplete="off">
+        <button id="clear-search-btn" class="clear-search-btn" style="display: none;">✕</button>
+      </div>
+    </section>
+
+    <!-- Selector de Categorías -->
+    <section class="categories-section">
+      <div id="category-pills" class="category-pills">
+        <!-- Renderizado dinámicamente desde config.js -->
+      </div>
+    </section>
+
+    <!-- Grilla de Productos -->
+    <section class="catalog-section">
+      <div class="section-header">
+        <h3 id="current-category-title" class="section-title">Todos los productos</h3>
+        <span id="product-count" class="product-count">0 artículos</span>
+      </div>
+
+      <div id="product-grid" class="product-grid">
+        <!-- Tarjetas inyectadas dinámicamente -->
+      </div>
+
+      <div id="no-products-msg" class="empty-state" style="display: none;">
+        <span class="empty-icon">🔍</span>
+        <h4>No encontramos resultados</h4>
+        <p>Probá buscando con otro nombre o seleccioná otra categoría.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Botón Flotante de Carrito Móvil -->
+  <div id="floating-cart-bar" class="floating-cart-bar">
+    <div class="floating-cart-content" id="floating-cart-btn">
+      <div class="cart-left">
+        <span class="floating-cart-icon">🛒</span>
+        <div>
+          <span id="floating-cart-count" class="floating-count">0 items</span>
+          <span class="floating-hint">Ver mi pedido</span>
+        </div>
+      </div>
+      <div class="cart-right">
+        <span id="floating-cart-total" class="floating-total">$0</span>
+        <span class="floating-arrow">→</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Detalle del Producto -->
+  <div id="product-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-content product-modal-card">
+      <button class="modal-close-btn" id="close-product-modal">&times;</button>
+      <div class="modal-img-container">
+        <img id="modal-product-img" src="" alt="Producto">
+        <span id="modal-product-badge" class="modal-badge"></span>
+      </div>
+      <div class="modal-body">
+        <h3 id="modal-product-name" class="modal-product-title"></h3>
+        <p id="modal-product-desc" class="modal-product-desc"></p>
+        <div class="modal-price-row">
+          <span class="modal-price-label">Precio:</span>
+          <span id="modal-product-price" class="modal-product-price"></span>
+        </div>
+
+        <div class="modal-qty-selector">
+          <span>Cantidad:</span>
+          <div class="qty-control">
+            <button id="modal-qty-minus" class="qty-btn" type="button">−</button>
+            <span id="modal-qty-num" class="qty-number">1</span>
+            <button id="modal-qty-plus" class="qty-btn" type="button">+</button>
+          </div>
+        </div>
+
+        <button id="modal-add-cart-btn" class="primary-btn btn-full">
+          Agregar al pedido • <span id="modal-btn-subtotal">$0</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drawer / Sidebar del Carrito -->
+  <div id="cart-drawer-overlay" class="drawer-overlay" style="display: none;"></div>
+  <aside id="cart-drawer" class="cart-drawer">
+    
+    <!-- Header del Carrito -->
+    <div class="drawer-header">
+      <div class="drawer-header-title">
+        <h3>Tu Pedido</h3>
+        <span id="drawer-item-count" class="drawer-badge">0 items</span>
+      </div>
+      <button id="close-cart-btn" class="drawer-close-btn" aria-label="Cerrar carrito">&times;</button>
+    </div>
+
+    <!-- Lista de Items en el Carrito -->
+    <div id="cart-items-container" class="drawer-body">
+      <!-- Items renderizados dinámicamente -->
+    </div>
+
+    <!-- Carrito Vacío -->
+    <div id="cart-empty-view" class="drawer-empty-view" style="display: none;">
+      <span class="drawer-empty-icon">🛒</span>
+      <h4>Tu carrito está vacío</h4>
+      <p>Elegí productos del menú para comenzar a armar tu pedido.</p>
+      <button id="browse-menu-btn" class="secondary-btn">Ver menú</button>
+    </div>
+
+    <!-- Footer del Carrito con Checkout -->
+    <div id="cart-checkout-section" class="drawer-footer">
+      
+      <!-- Paso 1: Tipo de Entrega -->
+      <div class="checkout-block">
+        <label class="block-label">Método de Entrega:</label>
+        <div class="delivery-toggle">
+          <button type="button" id="delivery-option-shipping" class="delivery-pill active">
+            🛵 Envío a domicilio
+          </button>
+          <button type="button" id="delivery-option-pickup" class="delivery-pill">
+            🏬 Retiro en local
+          </button>
+        </div>
+      </div>
+
+      <!-- Paso 2: Datos del Cliente -->
+      <div class="checkout-block">
+        <label class="block-label">Tus Datos para el Pedido:</label>
+        <div class="form-inputs">
+          <input type="text" id="customer-name" placeholder="Tu Nombre y Apellido *" class="form-control" required>
+          <input type="tel" id="customer-phone" placeholder="Tu Teléfono / WhatsApp *" class="form-control" required>
+          
+          <div id="shipping-address-group">
+            <input type="text" id="customer-address" placeholder="Dirección completa (Calle, Altura, Depto) *" class="form-control">
+          </div>
+          <div id="pickup-info-group" class="pickup-info-box" style="display: none;">
+            <span>📍 Dirección de retiro:</span>
+            <strong id="pickup-address-text">Av. Siempre Viva 742</strong>
+          </div>
+
+          <textarea id="customer-notes" placeholder="Aclaraciones (Ej: Tocar timbre, sin mayonesa, etc.)" class="form-control form-textarea" rows="2"></textarea>
+        </div>
+      </div>
+
+      <!-- Paso 3: Medio de Pago -->
+      <div class="checkout-block">
+        <label class="block-label">Forma de Pago:</label>
+        
+        <div class="payment-options">
+          <label class="payment-option-card">
+            <input type="radio" name="paymentMethod" value="cash" checked>
+            <div class="payment-card-info">
+              <span class="payment-icon">💵</span>
+              <div>
+                <strong>Efectivo al recibir</strong>
+                <p>Pagás en mano cuando llega tu pedido</p>
+              </div>
+            </div>
+          </label>
+
+          <!-- Input condicional para efectivo: con cuánto abona -->
+          <div id="cash-change-box" class="cash-change-box">
+            <label for="cash-amount-input">¿Con cuánto vas a pagar? (Para llevarte cambio):</label>
+            <div class="input-with-symbol">
+              <span>$</span>
+              <input type="number" id="cash-amount-input" placeholder="Ej: 20000" class="form-control">
+            </div>
+            <span id="cash-change-result" class="change-hint"></span>
+          </div>
+
+          <label class="payment-option-card">
+            <input type="radio" name="paymentMethod" value="transfer">
+            <div class="payment-card-info">
+              <span class="payment-icon">📱</span>
+              <div>
+                <strong>Transferencia Bancaria / Alias</strong>
+                <p>Transferís y enviás comprobante</p>
+              </div>
+            </div>
+          </label>
+
+          <!-- Datos de transferencia que aparecen al seleccionar -->
+          <div id="transfer-info-box" class="transfer-info-box" style="display: none;">
+            <div class="transfer-header">
+              <span>💳 Datos para transferir:</span>
+              <button type="button" id="copy-alias-btn" class="copy-btn">Copiar Alias</button>
+            </div>
+            <p><strong>Banco/Billetera:</strong> <span id="bank-name">Mercado Pago</span></p>
+            <p><strong>Alias:</strong> <span id="bank-alias" class="highlight-code">MI.TIENDA.PAGOS</span></p>
+            <p><strong>Titular:</strong> <span id="bank-holder">Tu Nombre</span></p>
+            <small>⚠️ Envianos el comprobante por WhatsApp tras realizar el pedido.</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen de Costos -->
+      <div class="order-summary-box">
+        <div class="summary-line">
+          <span>Subtotal:</span>
+          <span id="summary-subtotal">$0</span>
+        </div>
+        <div class="summary-line" id="summary-shipping-line">
+          <span>Costo de envío:</span>
+          <span id="summary-shipping">$0</span>
+        </div>
+        <div class="summary-line summary-total">
+          <strong>TOTAL A PAGAR:</strong>
+          <strong id="summary-total" class="total-highlight">$0</strong>
+        </div>
+      </div>
+
+      <!-- Botón Enviar Pedido a WhatsApp -->
+      <button id="send-order-btn" class="whatsapp-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2m.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.42 0-2.82-.37-4.06-1.07l-.29-.17-3.12.82.83-3.04-.19-.3a8.21 8.21 0 0 1-1.26-4.48c0-4.54 3.7-8.23 8.24-8.23m4.52 11.66c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.02-1.25-.75-.67-1.25-1.5-1.4-1.75-.15-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.08-.17.04-.32-.02-.44-.06-.13-.56-1.35-.77-1.85-.2-.49-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1s.9 2.44 1.03 2.61c.13.17 1.77 2.7 4.29 3.79.6.26 1.07.41 1.44.53.6.19 1.15.16 1.59.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.06-.11-.23-.17-.48-.29z"/>
+        </svg>
+        Confirmar y Enviar Pedido por WhatsApp
+      </button>
+
+      <p class="whatsapp-disclaimer">
+        Al presionar, se abrirá WhatsApp con el resumen de tu pedido listo para enviar.
+      </p>
+
+    </div>
+  </aside>
+
+  <!-- Toast de Notificaciones -->
+  <div id="toast" class="toast">Producto agregado al pedido ✨</div>
+
+  <!-- Scripts -->
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
